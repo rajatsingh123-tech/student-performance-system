@@ -102,8 +102,9 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📝 Test API: http://localhost:${PORT}/api/test\n`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n🚀 Server is live on port: ${PORT}`);
+    console.log(`📝 Test API path: /api/test\n`);
 });

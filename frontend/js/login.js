@@ -1,5 +1,5 @@
 // Login functionality
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://student-performance-system-44as.onrender.com/api';
 
 // Get role from URL parameter
 const urlParams = new URLSearchParams(window.location.search);
@@ -77,7 +77,7 @@ if (loginForm) {
             }
         } catch (error) {
             console.error('Login error:', error);
-            alert('Error connecting to server. Make sure the backend is running on http://localhost:5000');
+            alert('Error connecting to server. Please check your internet or wait for backend to wake up.');
         } finally {
             // Reset button
             submitBtn.textContent = originalText;

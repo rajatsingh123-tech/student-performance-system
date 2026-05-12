@@ -14,7 +14,7 @@
 async function loadAbout() {
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/about', {
+        const res = await fetch('https://student-performance-system-44as.onrender.com/api/about', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();

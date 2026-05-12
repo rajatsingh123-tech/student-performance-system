@@ -17,7 +17,7 @@
 async function loadNotices() {
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/notices', {
+        const res = await fetch('https://student-performance-system-44as.onrender.com/api/notices', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();

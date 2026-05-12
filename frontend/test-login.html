@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login - Student Performance System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .result {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .credentials {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .credentials h3 { margin-top: 0; color: #333; }
+        .credentials p { margin: 5px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Login API Test</h1>
+        <p class="subtitle">Test the authentication system</p>
+        
+        <div>
+            <button onclick="testLogin('student@example.com', 'student123')">👨‍🎓 Test Student Login</button>
+            <button onclick="testLogin('teacher@example.com', 'teacher123')">👩‍🏫 Test Teacher Login</button>
+            <button onclick="testLogin('admin@example.com', 'admin123')">👨‍💼 Test Admin Login</button>
+            <button onclick="testLogin('sarah@example.com', 'student123')">👧 Test Sarah (Student)</button>
+            <button onclick="testLogin('mike@example.com', 'student123')">👦 Test Mike (Student)</button>
+        </div>
+        
+        <div class="credentials">
+            <h3>📋 Available Test Credentials:</h3>
+            <p><strong>Students:</strong> student@example.com / student123</p>
+            <p><strong>Students:</strong> sarah@example.com / student123</p>
+            <p><strong>Students:</strong> mike@example.com / student123</p>
+            <p><strong>Teacher:</strong> teacher@example.com / teacher123</p>
+            <p><strong>Admin:</strong> admin@example.com / admin123</p>
+        </div>
+        
+        <div class="result" id="result">
+            Click any button to test login...
+        </div>
+    </div>
+
+    <script>
+        async function testLogin(email, password) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '⏳ Logging in... Please wait...';
+            
+            try {
+                console.log('Testing login with:', email);
+                
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                console.log('Response:', data);
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ LOGIN SUCCESSFUL!</div>
+                        <br>
+                        <strong>User Details:</strong><br>
+                        Name: ${data.name}<br>
+                        Email: ${data.email}<br>
+                        Role: ${data.role}<br>
+                        Student ID: ${data.studentId || 'N/A'}<br>
+                        Class: ${data.class || 'N/A'}<br>
+                        Token: ${data.token.substring(0, 50)}...
+                        <br><br>
+                        <strong>Full Response:</strong><br>
+                        ${JSON.stringify(data, null, 2)}
+                    `;
+                    alert(`✅ Login successful!\nWelcome ${data.name} (${data.role})`);
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">❌ LOGIN FAILED!</div>
+                        <br>
+                        <strong>Error:</strong> ${data.message || 'Unknown error'}<br>
+                        <br>
+                        <strong>Full Response:</strong><br>
+                        ${JSON.stringify(data, null, 2)}
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">❌ CONNECTION ERROR!</div>
+                    <br>
+                    ${error.message}<br><br>
+                    <strong>Troubleshooting:</strong><br>
+                    1. Make sure backend is running: cd backend && npm run dev<br>
+                    2. Check if MongoDB is connected<br>
+                    3. Verify backend is on port 5000<br>
+                    4. Check console for more details
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

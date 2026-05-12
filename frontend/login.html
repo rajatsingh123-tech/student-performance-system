@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Student Performance System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+           background: linear-gradient(135deg, #ea923b 0%, #c7c2cc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgb(251, 251, 251);
+            border-radius: 10px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgb(0, 0, 0);
+            animation: fadeInUp 0.7s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-container h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .login-container p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #efce92;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #516de9;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #eec779 0%, #d0c6b8 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 25px rgba(0, 0, 0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            box-shadow: 0 5px 25px rgba(0, 0, 0);;
+        }
+
+        .forgot-link {
+            text-align: right;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        .forgot-link a {
+            color: #101114;
+            text-decoration: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .forgot-link a:hover {
+            text-decoration:none;
+            color: #f53669;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .register-link a {
+            color: #101114;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .register-link a:hover {
+            text-decoration: none;
+            color: #f53669;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .modal-content h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-content p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .modal-message {
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .modal-message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .modal-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .btn-full {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .otp-input {
+            text-align: center;
+            font-size: 24px;
+            letter-spacing: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <p>🔐Login to your Account</p>
+        
+        <div id="message" class="message"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>📧 Email Address</label>
+                <input type="email" id="email" required placeholder="Enter your email">
+            </div>
+            
+            <div class="form-group">
+                <label>🔒 Password</label>
+                <input type="password" id="password" required placeholder="Enter your password">
+            </div>
+            
+            <div class="forgot-link">
+                <a onclick="showForgotPassword()">Forgot Password?</a>
+            </div>
+            
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+        
+        <div class="register-link">
+            Don't have an account?  
+            <br>
+            <a href="register.html"> Create New Account</a>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotModal" class="modal">
+        <div class="modal-content">
+            <h2>🔐 Reset Password</h2>
+            
+            <!-- Step 1: Enter Email -->
+            <div id="step1">
+                <!-- <p>Enter your registered email to receive OTP</p> -->
+                <div class="form-group">
+                    <!-- <label>Email Address</label> -->
+                    <input type="email" id="resetEmail" placeholder="Enter your Registered email">
+                </div>
+                <button class="btn-login" onclick="sendOTP()">Send OTP</button>
+                <button class="btn-login btn-secondary" onclick="closeForgotModal()">Cancel</button>
+            </div>
+            
+            <!-- Step 2: Enter OTP -->
+            <div id="step2" style="display: none;">
+                <p>Enter the 6 digit OTP sent to your registered email</p>
+                <div class="form-group">
+                    <label>OTP Code</label>
+                    <input type="text" id="otpCode" class="otp-input" placeholder="Enter 6-digit OTP" maxlength="6">
+                </div>
+                <button class="btn-login" onclick="verifyOTP()">Verify OTP</button>
+                <button class="btn-login btn-secondary" onclick="backToStep1()">Back</button>
+            </div>
+            
+            <!-- Step 3: Set New Password -->
+            <div id="step3" style="display: none;">
+                <p>Set your new password</p>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" placeholder="Min 6 characters">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
+                </div>
+                <button class="btn-login" onclick="resetPassword()">Reset Password</button>
+                <button class="btn-login btn-secondary" onclick="closeForgotModal()">Cancel</button>
+            </div>
+            
+            <div id="resetMessage" class="modal-message"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let resetEmail = '';
+        
+        // Show message on login form
+        function showMessage(msg, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = msg;
+            msgDiv.className = `message ${type}`;
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Show message inside modal
+        function showModalMessage(msg, type) {
+            const msgDiv = document.getElementById('resetMessage');
+            msgDiv.textContent = msg;
+            msgDiv.className = `modal-message ${type}`;
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Forgot Password Functions
+        function showForgotPassword() {
+            document.getElementById('forgotModal').style.display = 'flex';
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3').style.display = 'none';
+            document.getElementById('resetEmail').value = '';
+            document.getElementById('otpCode').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            document.getElementById('resetMessage').style.display = 'none';
+        }
+        
+        function closeForgotModal() {
+            document.getElementById('forgotModal').style.display = 'none';
+        }
+        
+        function backToStep1() {
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3').style.display = 'none';
+            document.getElementById('resetMessage').style.display = 'none';
+        }
+        
+        // Send OTP to Email
+        async function sendOTP() {
+            const email = document.getElementById('resetEmail').value;
+            if (!email) {
+                showModalMessage('Please enter your email', 'error');
+                return;
+            }
+            
+            resetEmail = email;
+            
+            try {
+                showModalMessage('Sending OTP...', 'info');
+                
+                const response = await fetch(`${API_URL}/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showModalMessage(`✅ OTP sent to ${email}. Please check your inbox!`, 'success');
+                    document.getElementById('step1').style.display = 'none';
+                    document.getElementById('step2').style.display = 'block';
+                    
+                    // For demo: Auto-fill OTP if shown in response (for testing only)
+                    if (data.otp) {
+                        console.log('📱 Demo OTP:', data.otp);
+                        document.getElementById('otpCode').value = data.otp;
+                    }
+                } else {
+                    showModalMessage(data.message || 'Error sending OTP', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showModalMessage('Cannot connect to server. Make sure backend is running.', 'error');
+            }
+        }
+        
+        // Verify OTP
+        async function verifyOTP() {
+            const otp = document.getElementById('otpCode').value;
+            if (!otp || otp.length !== 6) {
+                showModalMessage('Please enter valid 6-digit OTP', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: resetEmail, otp })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showModalMessage('✅ OTP verified successfully!', 'success');
+                    document.getElementById('step2').style.display = 'none';
+                    document.getElementById('step3').style.display = 'block';
+                } else {
+                    showModalMessage(data.message || 'Invalid OTP', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showModalMessage('Error verifying OTP', 'error');
+            }
+        }
+        
+        // Reset Password
+        async function resetPassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmNewPassword').value;
+            const otp = document.getElementById('otpCode').value;
+            
+            if (!newPassword || newPassword.length < 6) {
+                showModalMessage('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showModalMessage('Passwords do not match', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: resetEmail, otp, newPassword })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showModalMessage('✅ Password reset successfully! Redirecting to login...', 'success');
+                    setTimeout(() => {
+                        closeForgotModal();
+                        showMessage('Password reset successfully! Please login with your new password.', 'success');
+                    }, 2000);
+                } else {
+                    showModalMessage(data.message || 'Error resetting password', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showModalMessage('Error resetting password', 'error');
+            }
+        }
+        
+        // Login Form Submit
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const submitBtn = document.querySelector('.btn-login');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify({
+                        _id: data._id,
+                        name: data.name,
+                        email: data.email,
+                        role: data.role
+                    }));
+                    
+                    showMessage('✅ Login successful! Redirecting...', 'success');
+                    
+                    setTimeout(() => {
+                        if (data.role === 'student') {
+                            window.location.href = 'student-dashboard.html';
+                        } else if (data.role === 'teacher') {
+                            window.location.href = 'teacher-dashboard.html';
+                        } else if (data.role === 'admin') {
+                            window.location.href = 'admin-dashboard.html';
+                        }
+                    }, 1500);
+                } else {
+                    showMessage(data.message || 'Invalid email or password', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage('Cannot connect to server. Make sure backend is running on http://localhost:5000', 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

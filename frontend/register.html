@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Student Performance System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ea923b 0%, #c7c2cc 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .register-container {
+            max-width: 900px;
+            margin: 0 auto;
+            
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.9);
+            font-size: 1rem;
+        }
+
+        .form-card {
+            background: rgb(242, 241, 241);
+            border-radius: 10px;
+           box-shadow: 0 10px 30px rgb(0, 0, 0);
+            overflow: hidden;
+            animation: slideUp 0.9s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tabs {
+            display: flex;
+            background: #efeee8;
+            border-bottom: 1px solid #eb7830;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #272323;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab.active {
+            color: #e1976c;
+            background: rgb(255, 255, 255);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #f9ae8b;
+        }
+
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+
+        .form-body {
+            padding: 30px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #1b1818;
+            font-size: 0.9rem;
+        }
+
+        .form-group label i {
+            margin-right: 8px;
+            color: #25326b;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #dd9152;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #000000;
+            box-shadow: 0 10px 30px rgb(217, 161, 92);
+        }
+
+        .branch-group {
+            display: none;
+        }
+
+        .branch-group.show {
+            display: block;
+        }
+
+        .subjects-section {
+            background:  #f8ba7d 0%;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .subjects-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .subject-chip {
+            padding: 10px 12px;
+            background: white;
+            border: 2px solid #585654;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.1s;
+        }
+
+        .subject-chip:hover {
+            border-color: #1a9d0b;
+            transform: translateY(-2px);
+        }
+
+        .subject-chip.selected {
+            background: linear-gradient(135deg, #667eea 0%, #b494d3 100%);
+            color: white;
+            border-color: #fdfdfd;
+        }
+
+        .sections-container {
+            background: whitesmoke;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .section-entry {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .section-entry select {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .section-entry .class-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .section-entry .class-checkbox input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+
+        .remove-section {
+            background:#f8ba7d 0%;
+            color: rgb(5, 4, 4);
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .remove-section:hover {
+            background: #c82333;
+        }
+
+        .add-section-btn {
+            background: #f8ba7d 0%;
+            color: rgb(1, 1, 1);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            width: 60%;
+            margin-left: 130px;
+        }
+
+        .add-section-btn:hover {
+            background: #949eff;
+        }
+
+        .btn-register {
+            width: 90%;
+            padding: 14px;
+            background:#f8ba7d 0%;
+            color:rgb(1, 1, 1);
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 300;
+            cursor: pointer;
+            transition: all 0.1s;
+            margin-top: 10px;
+            margin-left: 40px;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgb(15, 15, 15);
+        }
+
+        .btn-register:disabled {
+            opacity: 0.6;
+            transform: none;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #eb9b9b 0%;
+            color: #000000;
+            border: 1px solid #070505;
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            color: #1a9d0b;
+        }
+
+        .section-header {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            .subjects-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .form-body {
+                padding: 20px;
+            }
+            .section-entry {
+                flex-direction: column;
+            }
+            .section-entry select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="header">
+            <h1>🔐Create Account</h1>
+        </div>
+
+        <div class="form-card">
+            <div class="tabs">
+                <div class="tab active" data-tab="student" onclick="switchTab('student')">STUDENT</div>
+                <div class="tab" data-tab="teacher" onclick="switchTab('teacher')">TEACHER</div>
+                <div class="tab" data-tab="admin" onclick="switchTab('admin')">ADMIN</div>
+            </div>
+
+            <div class="form-body">
+                <div id="message" class="message"></div>
+
+                <form id="registerForm" autocomplete="off" novalidate>
+                    <!-- Common Fields -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i></i> Full Name *</label>
+                            <input type="text" id="name" name="name" required placeholder="Enter your full name" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label><i></i> Email Address *</label>
+                            <input type="email" id="email" name="email" required placeholder="Enter your email" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i></i> Mobile Number</label>
+                            <input type="tel" id="mobile" name="mobile" placeholder="Optional - for recovery" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label><i></i> Password *</label>
+                            <input type="password" id="password" name="password" required placeholder="Min 6 characters" autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label><i></i> Confirm Password *</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm your password" autocomplete="new-password">
+                    </div>
+
+                    <!-- Student Fields -->
+                    <div id="studentFields" class="role-fields">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i></i> Student ID *</label>
+                                <input type="text" id="studentId" name="studentId" placeholder="e.g., STU001" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label><i></i> Roll Number *</label>
+                                <input type="text" id="rollNumber" name="rollNumber" placeholder="e.g., 01" autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i></i> Class *</label>
+                                <select id="className" name="className">
+                                    <option value="">Select Class</option>
+                                    <option value="BCA 1st Year">BCA 1st Year</option>
+                                    <option value="BCA 2nd Year">BCA 2nd Year</option>
+                                    <option value="BCA 3rd Year">BCA 3rd Year</option>
+                                    <option value="BBA 1st Year">BBA 1st Year</option>
+                                    <option value="BBA 2nd Year">BBA 2nd Year</option>
+                                    <option value="BBA 3rd Year">BBA 3rd Year</option>
+                                    <option value="BTech 1st Year">BTech 1st Year</option>
+                                    <option value="BTech 2nd Year">BTech 2nd Year</option>
+                                    <option value="BTech 3rd Year">BTech 3rd Year</option>
+                                    <option value="BTech 4th Year">BTech 4th Year</option>
+                                    <option value="BA 1st Year">BA 1st Year</option>
+                                    <option value="BA 2nd Year">BA 2nd Year</option>
+                                    <option value="BA 3rd Year">BA 3rd Year</option>
+                                    <option value="B.Com 1st Year">B.Com 1st Year</option>
+                                    <option value="B.Com 2nd Year">B.Com 2nd Year</option>
+                                    <option value="B.Com 3rd Year">B.Com 3rd Year</option>
+                                    <option value="B.Sc 1st Year">B.Sc 1st Year</option>
+                                    <option value="B.Sc 2nd Year">B.Sc 2nd Year</option>
+                                    <option value="B.Sc 3rd Year">B.Sc 3rd Year</option>
+                                    <option value="MBA 1st Year">MBA 1st Year</option>
+                                    <option value="MBA 2nd Year">MBA 2nd Year</option>
+                                    <option value="MCA 1st Year">MCA 1st Year</option>
+                                    <option value="MCA 2nd Year">MCA 2nd Year</option>
+                                    <option value="M.Tech 1st Year">M.Tech 1st Year</option>
+                                    <option value="M.Tech 2nd Year">M.Tech 2nd Year</option>
+                                    <option value="M.Pharm 1st Year">M.Pharm 1st Year</option>
+                                    <option value="M.Pharm 2nd Year">M.Pharm 2nd Year</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i></i> Section *</label>
+                                <select id="section" name="section">
+                                    <option value="">Select Section</option>
+                                    <option value="A">Section A</option>
+                                    <option value="B">Section B</option>
+                                    <option value="C">Section C</option>
+                                    <option value="D">Section D</option>
+                                    <option value="E">Section E</option>
+                                    <option value="F">Section F</option>
+                                    <option value="G">Section G</option>
+                                    <option value="H">Section H</option>
+                                    <option value="I">Section I</option>
+                                    <option value="J">Section J</option>
+                                    <option value="K">Section K</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Teacher Fields -->
+                    <div id="teacherFields" class="role-fields" style="display: none;">
+                        <!-- Subjects Selection -->
+                        <div class="subjects-section">
+                            <div class="subjects-title"><i></i> Select Subjects *</div>
+                            <div class="subjects-grid" id="subjectsGrid">
+                                <div class="subject-chip" data-subject="Mathematics">📐 Mathematics</div>
+                                <div class="subject-chip" data-subject="Physics">⚡ Physics</div>
+                                <div class="subject-chip" data-subject="Chemistry">🧪 Chemistry</div>
+                                <div class="subject-chip" data-subject="Computer Science">💻 Computer Science</div>
+                                <div class="subject-chip" data-subject="Programming">👨‍💻 Programming</div>
+                                <div class="subject-chip" data-subject="Database">🗄️ Database</div>
+                                <div class="subject-chip" data-subject="Web Development">🌐 Web Development</div>
+                                <div class="subject-chip" data-subject="Data Structures">📊 Data Structures</div>
+                                <div class="subject-chip" data-subject="Operating System">🖥️ Operating System</div>
+                                <div class="subject-chip" data-subject="Computer Networks">🌍 Computer Networks</div>
+                                <div class="subject-chip" data-subject="Software Engineering">📱 Software Engineering</div>
+                                <div class="subject-chip" data-subject="Cloud Computing">☁️ Cloud Computing</div>
+                                <div class="subject-chip" data-subject="Management">📊 Management</div>
+                                <div class="subject-chip" data-subject="Marketing">📈 Marketing</div>
+                                <div class="subject-chip" data-subject="Finance">💰 Finance</div>
+                                <div class="subject-chip" data-subject="Economics">📉 Economics</div>
+                                <div class="subject-chip" data-subject="Accounting">📚 Accounting</div>
+                                <div class="subject-chip" data-subject="Business Law">⚖️ Business Law</div>
+                                <div class="subject-chip" data-subject="Modern Pharmaceutical Techniques">💊 Modern Pharmaceutical Techniques</div>
+                                <div class="subject-chip" data-subject="Drug Regulatory Affairs">📋 Drug Regulatory Affairs</div>
+                                <div class="subject-chip" data-subject="Research Methodology">🔬 Research Methodology</div>
+                                <div class="subject-chip" data-subject="Numerical Methods">🔢 Numerical Methods</div>
+                                <div class="subject-chip" data-subject="Technical Communication">💬 Technical Communication</div>
+                                <div class="subject-chip" data-subject="History">📜 History</div>
+                                <div class="subject-chip" data-subject="Political Science">🏛️ Political Science</div>
+                                <div class="subject-chip" data-subject="Sociology">👥 Sociology</div>
+                                <div class="subject-chip" data-subject="Geography">🌍 Geography</div>
+                            </div>
+                            <input type="hidden" id="subjects" name="subjects" value="">
+                            <div id="selectedSubjectsDisplay" style="margin-top: 12px; font-size: 12px; color: #666;"></div>
+                        </div>
+
+                        <!-- Multiple Sections Selection -->
+                        <div class="sections-container">
+                            <div class="section-header"><i></i>Select Class & Sections *</div>
+                            <div id="sectionsList">
+                                <div class="section-entry">
+                                    <select class="section-class" required>
+                                        <option value="">Select Class</option>
+                                        <option value="BCA 1st Year">BCA 1st Year</option>
+                                        <option value="BCA 2nd Year">BCA 2nd Year</option>
+                                        <option value="BCA 3rd Year">BCA 3rd Year</option>
+                                        <option value="BBA 1st Year">BBA 1st Year</option>
+                                        <option value="BBA 2nd Year">BBA 2nd Year</option>
+                                        <option value="BBA 3rd Year">BBA 3rd Year</option>
+                                        <option value="BTech 1st Year">BTech 1st Year</option>
+                                        <option value="BTech 2nd Year">BTech 2nd Year</option>
+                                        <option value="BTech 3rd Year">BTech 3rd Year</option>
+                                        <option value="BTech 4th Year">BTech 4th Year</option>
+                                        <option value="BA 1st Year">BA 1st Year</option>
+                                        <option value="BA 2nd Year">BA 2nd Year</option>
+                                        <option value="BA 3rd Year">BA 3rd Year</option>
+                                        <option value="B.Com 1st Year">B.Com 1st Year</option>
+                                        <option value="B.Com 2nd Year">B.Com 2nd Year</option>
+                                        <option value="B.Com 3rd Year">B.Com 3rd Year</option>
+                                        <option value="B.Sc 1st Year">B.Sc 1st Year</option>
+                                        <option value="B.Sc 2nd Year">B.Sc 2nd Year</option>
+                                        <option value="B.Sc 3rd Year">B.Sc 3rd Year</option>
+                                        <option value="MBA 1st Year">MBA 1st Year</option>
+                                        <option value="MBA 2nd Year">MBA 2nd Year</option>
+                                        <option value="MCA 1st Year">MCA 1st Year</option>
+                                        <option value="MCA 2nd Year">MCA 2nd Year</option>
+                                        <option value="M.Tech 1st Year">M.Tech 1st Year</option>
+                                        <option value="M.Tech 2nd Year">M.Tech 2nd Year</option>
+                                        <option value="M.Pharm 1st Year">M.Pharm 1st Year</option>
+                                        <option value="M.Pharm 2nd Year">M.Pharm 2nd Year</option>
+                                    </select>
+                                    <select class="section-letter">
+                                        <option value="">Select Section</option>
+                                        <option value="A">Section A</option>
+                                        <option value="B">Section B</option>
+                                        <option value="C">Section C</option>
+                                        <option value="D">Section D</option>
+                                        <option value="E">Section E</option>
+                                        <option value="F">Section F</option>
+                                        <option value="G">Section G</option>
+                                        <option value="H">Section H</option>
+                                        <option value="I">Section I</option>
+                                        <option value="J">Section J</option>
+                                        <option value="K">Section K</option>
+                                    </select>
+                                    <label class="class-checkbox">
+                                        <input type="checkbox" class="is-class-teacher"> Class Teacher?
+                                    </label>
+                                    <button type="button" class="remove-section" onclick="removeSection(this)">✖</button>
+                                </div>
+                            </div>
+                            <button type="button" class="add-section-btn" onclick="addNewSection()">+ Add Another Section</button>
+                        </div>
+
+                        <!-- B.Tech Branch Selection -->
+                        <div id="branchField" class="branch-group">
+                            <div class="form-group">
+                                <label><i>🔧</i> B.Tech Branch / Specialization (Only for BTech)</label>
+                                <select id="teacherBranch" name="teacherBranch">
+                                    <option value="">Select Branch (Optional)</option>
+                                    <option value="CSE">CSE (Computer Science Engineering)</option>
+                                    <option value="IT">IT (Information Technology)</option>
+                                    <option value="ME">ME (Mechanical Engineering)</option>
+                                    <option value="CE">CE (Civil Engineering)</option>
+                                    <option value="EC">EC (Electronics & Communication)</option>
+                                    <option value="EE">EE (Electrical Engineering)</option>
+                                    <option value="AEI">AEI (Applied Electronics & Instrumentation)</option>
+                                    <option value="CS_AI_ML">CS (AI & Machine Learning)</option>
+                                    <option value="DS">DS (Data Science)</option>
+                                    <option value="CS_Cyber">CS (Cyber Security)</option>
+                                    <option value="CS_Cloud">CS (Cloud Computing)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-register">Create Account</button>
+                </form>
+
+                <div class="login-link">
+                    Already have an account? <a href="login.html">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let selectedSubjects = [];
+
+        // Clear all form fields on page load
+        window.addEventListener('load', function() {
+            const form = document.getElementById('registerForm');
+            if (form) {
+                form.reset();
+            }
+            
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (input.type !== 'hidden' && input.type !== 'button' && input.type !== 'submit') {
+                    if (input.tagName === 'SELECT') {
+                        input.selectedIndex = 0;
+                    } else {
+                        input.value = '';
+                    }
+                }
+            });
+            
+            selectedSubjects = [];
+            document.querySelectorAll('.subject-chip').forEach(chip => {
+                chip.classList.remove('selected');
+            });
+            document.getElementById('subjects').value = '';
+            document.getElementById('selectedSubjectsDisplay').innerHTML = '';
+            document.getElementById('branchField').classList.remove('show');
+            
+            // Reset sections to single entry with all options
+            const sectionsList = document.getElementById('sectionsList');
+            sectionsList.innerHTML = `
+                <div class="section-entry">
+                    <select class="section-class" required>
+                        <option value="">Select Class</option>
+                        <option value="BCA 1st Year">BCA 1st Year</option>
+                        <option value="BCA 2nd Year">BCA 2nd Year</option>
+                        <option value="BCA 3rd Year">BCA 3rd Year</option>
+                        <option value="BBA 1st Year">BBA 1st Year</option>
+                        <option value="BBA 2nd Year">BBA 2nd Year</option>
+                        <option value="BBA 3rd Year">BBA 3rd Year</option>
+                        <option value="BTech 1st Year">BTech 1st Year</option>
+                        <option value="BTech 2nd Year">BTech 2nd Year</option>
+                        <option value="BTech 3rd Year">BTech 3rd Year</option>
+                        <option value="BTech 4th Year">BTech 4th Year</option>
+                        <option value="BA 1st Year">BA 1st Year</option>
+                        <option value="BA 2nd Year">BA 2nd Year</option>
+                        <option value="BA 3rd Year">BA 3rd Year</option>
+                        <option value="B.Com 1st Year">B.Com 1st Year</option>
+                        <option value="B.Com 2nd Year">B.Com 2nd Year</option>
+                        <option value="B.Com 3rd Year">B.Com 3rd Year</option>
+                        <option value="B.Sc 1st Year">B.Sc 1st Year</option>
+                        <option value="B.Sc 2nd Year">B.Sc 2nd Year</option>
+                        <option value="B.Sc 3rd Year">B.Sc 3rd Year</option>
+                        <option value="MBA 1st Year">MBA 1st Year</option>
+                        <option value="MBA 2nd Year">MBA 2nd Year</option>
+                        <option value="MCA 1st Year">MCA 1st Year</option>
+                        <option value="MCA 2nd Year">MCA 2nd Year</option>
+                        <option value="M.Tech 1st Year">M.Tech 1st Year</option>
+                        <option value="M.Tech 2nd Year">M.Tech 2nd Year</option>
+                        <option value="M.Pharm 1st Year">M.Pharm 1st Year</option>
+                        <option value="M.Pharm 2nd Year">M.Pharm 2nd Year</option>
+                    </select>
+                    <select class="section-letter">
+                        <option value="">Select Section</option>
+                        <option value="A">Section A</option>
+                        <option value="B">Section B</option>
+                        <option value="C">Section C</option>
+                        <option value="D">Section D</option>
+                        <option value="E">Section E</option>
+                        <option value="F">Section F</option>
+                        <option value="G">Section G</option>
+                        <option value="H">Section H</option>
+                        <option value="I">Section I</option>
+                        <option value="J">Section J</option>
+                        <option value="K">Section K</option>
+                    </select>
+                    <label class="class-checkbox">
+                        <input type="checkbox" class="is-class-teacher"> Class Teacher?
+                    </label>
+                    <button type="button" class="remove-section" onclick="removeSection(this)" style="display: none;">✖</button>
+                </div>
+            `;
+        });
+
+        const API_URL = 'http://localhost:5000/api';
+
+        function switchTab(role) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.tab[data-tab="${role}"]`).classList.add('active');
+
+            document.getElementById('studentFields').style.display = role === 'student' ? 'block' : 'none';
+            document.getElementById('teacherFields').style.display = role === 'teacher' ? 'block' : 'none';
+
+            const studentInputs = document.querySelectorAll('#studentFields input, #studentFields select');
+            const teacherInputs = document.querySelectorAll('#teacherFields input, #teacherFields select, #teacherFields .section-class, #teacherFields .section-letter');
+            
+            if (role === 'student') {
+                studentInputs.forEach(input => input.required = true);
+                teacherInputs.forEach(input => input.required = false);
+            } else if (role === 'teacher') {
+                studentInputs.forEach(input => input.required = false);
+                teacherInputs.forEach(input => input.required = true);
+            } else {
+                studentInputs.forEach(input => input.required = false);
+                teacherInputs.forEach(input => input.required = false);
+            }
+        }
+
+        function addNewSection() {
+            const sectionsList = document.getElementById('sectionsList');
+            const newSection = document.createElement('div');
+            newSection.className = 'section-entry';
+            newSection.innerHTML = `
+                <select class="section-class" required>
+                    <option value="">Select Class</option>
+                    <option value="BCA 1st Year">BCA 1st Year</option>
+                    <option value="BCA 2nd Year">BCA 2nd Year</option>
+                    <option value="BCA 3rd Year">BCA 3rd Year</option>
+                    <option value="BBA 1st Year">BBA 1st Year</option>
+                    <option value="BBA 2nd Year">BBA 2nd Year</option>
+                    <option value="BBA 3rd Year">BBA 3rd Year</option>
+                    <option value="BTech 1st Year">BTech 1st Year</option>
+                    <option value="BTech 2nd Year">BTech 2nd Year</option>
+                    <option value="BTech 3rd Year">BTech 3rd Year</option>
+                    <option value="BTech 4th Year">BTech 4th Year</option>
+                    <option value="BA 1st Year">BA 1st Year</option>
+                    <option value="BA 2nd Year">BA 2nd Year</option>
+                    <option value="BA 3rd Year">BA 3rd Year</option>
+                    <option value="B.Com 1st Year">B.Com 1st Year</option>
+                    <option value="B.Com 2nd Year">B.Com 2nd Year</option>
+                    <option value="B.Com 3rd Year">B.Com 3rd Year</option>
+                    <option value="B.Sc 1st Year">B.Sc 1st Year</option>
+                    <option value="B.Sc 2nd Year">B.Sc 2nd Year</option>
+                    <option value="B.Sc 3rd Year">B.Sc 3rd Year</option>
+                    <option value="MBA 1st Year">MBA 1st Year</option>
+                    <option value="MBA 2nd Year">MBA 2nd Year</option>
+                    <option value="MCA 1st Year">MCA 1st Year</option>
+                    <option value="MCA 2nd Year">MCA 2nd Year</option>
+                    <option value="M.Tech 1st Year">M.Tech 1st Year</option>
+                    <option value="M.Tech 2nd Year">M.Tech 2nd Year</option>
+                    <option value="M.Pharm 1st Year">M.Pharm 1st Year</option>
+                    <option value="M.Pharm 2nd Year">M.Pharm 2nd Year</option>
+                </select>
+                <select class="section-letter">
+                    <option value="">Select Section</option>
+                    <option value="A">Section A</option>
+                    <option value="B">Section B</option>
+                    <option value="C">Section C</option>
+                    <option value="D">Section D</option>
+                    <option value="E">Section E</option>
+                    <option value="F">Section F</option>
+                    <option value="G">Section G</option>
+                    <option value="H">Section H</option>
+                    <option value="I">Section I</option>
+                    <option value="J">Section J</option>
+                    <option value="K">Section K</option>
+                </select>
+                <label class="class-checkbox">
+                    <input type="checkbox" class="is-class-teacher"> Class Teacher?
+                </label>
+                <button type="button" class="remove-section" onclick="removeSection(this)">✖</button>
+            `;
+            sectionsList.appendChild(newSection);
+        }
+
+        function removeSection(btn) {
+            const sectionEntry = btn.parentElement;
+            if (document.querySelectorAll('.section-entry').length > 1) {
+                sectionEntry.remove();
+            } else {
+                showMessage('At least one teaching section is required', 'error');
+            }
+        }
+
+        // Subject selection
+        document.querySelectorAll('.subject-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                const subject = this.dataset.subject;
+                
+                if (this.classList.contains('selected')) {
+                    this.classList.remove('selected');
+                    selectedSubjects = selectedSubjects.filter(s => s !== subject);
+                } else {
+                    this.classList.add('selected');
+                    selectedSubjects.push(subject);
+                }
+                
+                document.getElementById('subjects').value = selectedSubjects.join(',');
+                
+                const displayDiv = document.getElementById('selectedSubjectsDisplay');
+                if (selectedSubjects.length > 0) {
+                    displayDiv.innerHTML = `✅ Selected: ${selectedSubjects.join(', ')}`;
+                    displayDiv.style.color = '#28a745';
+                } else {
+                    displayDiv.innerHTML = '';
+                }
+            });
+        });
+
+        function showMessage(message, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = message;
+            msgDiv.className = `message ${type}`;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const mobile = document.getElementById('mobile').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            let role = 'student';
+            if (document.querySelector('.tab.active').dataset.tab === 'teacher') role = 'teacher';
+            if (document.querySelector('.tab.active').dataset.tab === 'admin') role = 'admin';
+            
+            if (!name || !email || !password) {
+                showMessage('Please fill all required fields', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match', 'error');
+                return;
+            }
+            
+            let userData = {
+                name, email, password, role,
+                mobile: mobile || null
+            };
+            
+            if (role === 'student') {
+                const studentId = document.getElementById('studentId').value.trim();
+                const className = document.getElementById('className').value;
+                const section = document.getElementById('section').value;
+                const rollNumber = document.getElementById('rollNumber').value.trim();
+                
+                if (!studentId || !className || !section || !rollNumber) {
+                    showMessage('Please fill all student details', 'error');
+                    return;
+                }
+                
+                userData.studentId = studentId;
+                userData.className = className;
+                userData.section = section;
+                userData.rollNumber = rollNumber;
+            }
+            
+            else if (role === 'teacher') {
+                const subjects = selectedSubjects;
+                const teacherBranch = document.getElementById('teacherBranch').value;
+                const branchField = document.getElementById('branchField');
+                
+                if (subjects.length === 0) {
+                    showMessage('Please select at least one subject', 'error');
+                    return;
+                }
+                
+                // Get all sections
+                const teachingSections = [];
+                const sectionEntries = document.querySelectorAll('.section-entry');
+                
+                for (const entry of sectionEntries) {
+                    const className = entry.querySelector('.section-class').value;
+                    const sectionLetter = entry.querySelector('.section-letter').value;
+                    const isClassTeacher = entry.querySelector('.is-class-teacher').checked;
+                    
+                    if (!className || !sectionLetter) {
+                        showMessage('Please fill all section details (Class and Section)', 'error');
+                        return;
+                    }
+                    
+                    teachingSections.push({
+                        className: className,
+                        section: sectionLetter,
+                        isClassTeacher: isClassTeacher
+                    });
+                }
+                
+                if (teachingSections.length === 0) {
+                    showMessage('Please add at least one teaching section', 'error');
+                    return;
+                }
+                
+                userData.subjects = subjects;
+                userData.teachingSections = teachingSections;
+                
+                // For backward compatibility
+                const firstSection = teachingSections[0];
+                userData.assignedClass = firstSection.className;
+                userData.assignedSection = firstSection.section;
+                userData.isClassTeacher = firstSection.isClassTeacher;
+                
+                // Only add branch if field is visible and has value
+                if (branchField && branchField.classList.contains('show') && teacherBranch) {
+                    userData.teacherBranch = teacherBranch;
+                }
+            }
+            
+            const submitBtn = document.querySelector('.btn-register');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Creating account...';
+            submitBtn.disabled = true;
+            
+            try {
+                console.log('Sending:', userData);
+                
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                console.log('Response:', data);
+                
+                if (response.ok && data.success) {
+                    showMessage(`✅ ${data.message || 'Registration successful!'} Redirecting to login...`, 'success');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    showMessage(data.message || 'Registration failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error connecting to server. Make sure backend is running.', 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Function to check and show/hide branch field
+        function checkAndShowBranchField() {
+            const sectionsList = document.getElementById('sectionsList');
+            const hasBTech = Array.from(sectionsList.querySelectorAll('.section-class')).some(select => 
+                select.value && select.value.includes('BTech')
+            );
+            const branchField = document.getElementById('branchField');
+            if (hasBTech) {
+                branchField.classList.add('show');
+            } else {
+                branchField.classList.remove('show');
+                const branchSelect = document.getElementById('teacherBranch');
+                if (branchSelect) branchSelect.value = '';
+            }
+        }
+
+        // Add event listener for section class changes
+        document.getElementById('sectionsList').addEventListener('change', function(e) {
+            if (e.target && e.target.classList && e.target.classList.contains('section-class')) {
+                checkAndShowBranchField();
+            }
+        });
+        
+        // Force remove required from teacherBranch
+        window.addEventListener('load', function() {
+            const teacherBranchSelect = document.getElementById('teacherBranch');
+            if (teacherBranchSelect) {
+                teacherBranchSelect.removeAttribute('required');
+                teacherBranchSelect.required = false;
+            }
+        });
+    </script>
+</body>
+</html>

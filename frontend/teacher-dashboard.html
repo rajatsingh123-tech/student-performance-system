@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - Complete System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%); min-height: 100vh; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #ffffff; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgb(224, 227, 227); border-radius: 10px; }
+        
+        .navbar {
+            background: rgb(254, 254, 254);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 8px rgb(7, 7, 7);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background:  rgb(254, 254, 254);
+            backdrop-filter: blur(px);
+        }
+        .navbar h2 { 
+            background:  #7c7a78;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .user-info button { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 2px; cursor: pointer; transition: all 0.2s; }
+        .user-info button:hover { background: #dc3545; transform: translateY(-2px); box-shadow: 0 5px 10px rgb(5, 5, 5);}
+        
+        .dashboard-content { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgb(254, 254, 254);
+            padding: 1.5rem;
+            border-radius: 2px;
+            text-align: center;
+            box-shadow: 0 3px 9px rgb(2, 2, 2);
+            transition: all 0.5s;
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow:0 3px 9px rgb(255, 75, 75);}
+        .stat-card h3 { color: #646261; font-size: 0.90rem; margin-bottom: 0.5rem; text-transform: uppercase; }
+        .stat-value { 
+            font-size: 1.6rem; 
+            font-weight: bold; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            background:  rgb(254, 254, 254);
+            padding: 8px;
+            border-radius: 2px;
+            flex-wrap: wrap;
+            box-shadow: 0 3px 9px rgb(2, 2, 2);
+        }
+        .tab {
+            padding: 10px 28px;
+            background: rgb(254, 239, 239);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-weight: 620;
+            color: #51504f
+        }
+        .tab:hover { background: rgb(255, 188, 188); transform: translateY(-2px); }
+        .tab.active { background: linear-gradient(135deg, #7d91eb 0%, #9c63d5 100%); color: white;  box-shadow: 0 3px 9px rgb(2, 2, 2); }
+        
+        .tab-content {
+            display: none;
+            background:rgb(254, 254, 254);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 3px 9px rgb(2, 2, 2);
+        }
+        .tab-content.active { display: block; animation: fadeInUp 0.4s ease; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .search-bar {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solidrgb(2, 2, 2);
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .search-bar input:focus { outline: none; border-color: #000000; }
+        .search-bar select {
+            padding: 12px 18px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            background: white;
+        }
+        .search-bar button {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #7d91eb 0%, #9c63d5 100%);
+            color: white;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 520;
+        }
+        .search-bar button:hover { transform: translateY(-2px);box-shadow: 0 3px 9px rgb(2, 2, 2); }
+        
+        .form-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 25px;
+            border-radius: 2px;
+            margin-bottom: 30px;
+             box-shadow: 0 3px 9px rgb(2, 2, 2);
+            border: 2px solid rgba(0, 0, 0, 0.692);
+        }
+        .form-card h3 { color:  #3d3c3b; margin-bottom: 20px; font-size: 1.3rem; }
+        .form-card form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .form-card input, .form-card select { padding: 12px; border: 2px solid #e9ecef; border-radius: 2px; transition: all 0.3s; }
+        .form-card input:focus, .form-card select:focus { outline: none; border-color: #acb4d8; }
+        .form-card button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px; border-radius: 1px; cursor: pointer; transition: all 0.3s; font-weight: 550; }
+        .form-card button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(40,167,69,0.3); }
+        
+        .data-table { overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #0e0f10; }
+        th { background: #f8f9fa; font-weight: 600; color: #333; border-radius: 1px; }
+        tr:hover { background: #f8f9fa; }
+        
+        .section-card {
+            background: rgb(255, 248, 248);
+            border-radius: 2px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 9px rgb(2, 2, 2);
+            border-left: 5px solid #d0d1d8;
+            transition: all 0.3s;
+        }
+        .section-card:hover {box-shadow: 0 3px 9px rgb(2, 2, 2); transform: translateX(5px); }
+        .section-card h3 { margin-bottom: 20px; font-size: 1.2rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .badge { padding: 5px 14px; border-radius: 30px; font-size: 11px; font-weight: 600; }
+        .badge-class-teacher { background:linear-gradient(135deg, #8b9ce7 0%, #764ba2 100%); }
+        .badge-subject-teacher { background:linear-gradient(135deg, #8b9ef0 0%, #764ba2 100%); }
+        
+        .btn-edit { background: #eecf73; color: #333; border: none; padding: 6px 14px; border-radius: 3px; cursor: pointer; margin: 2px; transition: all 0.3s; }
+        .btn-edit:hover { background: #aaf699; transform: translateY(-2px); }
+        .btn-delete { background: #fa707e; color: white; border: none; padding: 6px 14px; border-radius: 3px; cursor: pointer; margin: 2px; transition: all 0.3s; }
+        .btn-delete:hover { background: #bd2130; transform: translateY(-2px); }
+        .btn-view { background:linear-gradient(135deg, #8b9ce7 0%, #764ba2 100%);; color: white; border: none; padding: 6px 14px; border-radius: 3px; cursor: pointer; margin: 2px; transition: all 0.3s; }
+        .btn-view:hover { background:linear-gradient(135deg, #4a62cd 0%, #764ba2 100%);; transform: translateY(-2px); }
+        .btn-schedule-edit { background: #4a90e2; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; margin: 2px; transition: all 0.3s; font-size: 12px; }
+        .btn-schedule-edit:hover { background: #357abd; transform: translateY(-2px); }
+        
+        /* Score Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: rgb(255, 250, 250);
+            border-radius: 2px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80%;
+            overflow-y: auto;
+            padding: 25px;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-content h3 { margin-bottom: 20px; color: #333; }
+        .score-table { width: 100%; border-collapse: collapse; }
+        .score-table th, .score-table td { padding: 10px; text-align: left; border-bottom: 1px solid #070606; }
+        .score-table th { background: #667eea; color: white; }
+        .modal-close { background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer; margin-top: 20px; }
+        .edit-score-input { width: 80px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; }
+        .save-score-btn { background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-left: 5px; }
+        .cancel-edit-btn { background: #6c757d; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-left: 5px; }
+        
+        .btn-primary { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); color: white; border: none; padding: 12px 28px; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; margin-top: 20px; transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(40,167,69,0.3); }
+        
+        .loading { text-align: center; padding: 50px; color: #666; font-size: 1.1rem; }
+        
+        .attendance-section {
+            background: white;
+            border-radius: 2px;
+            padding: 25px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            box-shadow: 0 3px 9px rgb(2, 2, 2);
+        }
+        .attendance-section h3 { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #1a1a1d; color: #333; font-size: 1.2rem; }
+        .attendance-table { width: 100%; border-collapse: collapse; min-width: 450px; }
+        .attendance-table th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; text-align: center; font-size: 10px; }
+        .attendance-table td { padding: 12px; text-align: center; border-bottom: 1px solid #e9ecef; }
+        .attendance-table tr:hover { background: #f8f9fa; }
+        .attendance-status { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        .status-btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .status-btn:hover { transform: scale(1.05); }
+        .status-present { background: #28a745; color: white; }
+        .status-absent { background: #dc3545; color: white; }
+        .status-late { background: #ffc107; color: #333; }
+        .status-selected { box-shadow: 0 0 0 2px white, 0 0 0 4px #667eea; transform: scale(1.05); }
+        
+        .attendance-date { padding: 12px; font-size: 16px; border: 1px solid #353636; border-radius: 12px; margin-right: 10px; }
+        .mark-all-btn { background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer; margin-left: 10px; transition: all 0.3s; font-weight: 550; }
+        .mark-all-btn:hover { background: #5a67d8; transform: translateY(-2px); }
+        .subject-attendance-grid { overflow-x: auto; max-width: 100%; }
+        .info-note { background: #e8f4fd; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; color: #0056b3; border-left: 4px solid #17a2b8; }
+        
+        .schedule-form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+        
+        /* Clear fix for sections */
+        .students-sections-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        /* Schedule Timetable Styles */
+        .schedule-timetable {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .schedule-day-card {
+            background: #ffffff;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 3px 9px rgb(2, 2, 2);
+            border: 1px solid #2b2b2c;
+        }
+        .schedule-day-header {
+            background: #f8fafc;
+            padding: 16px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #4e4f4f;
+        }
+        .schedule-day-header:hover { background: #f1f5f9; }
+        .schedule-day-header h3 {
+            font-size: 1.1rem;
+            font-weight: 550;
+            color: #1e293b;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .schedule-count {
+            background: #e2e8f0;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #3a3a3b;
+        }
+        .toggle-icon { font-size: 1.2rem; transition: transform 0.2s; color: #64748b; }
+        .schedule-day-header.collapsed .toggle-icon { transform: rotate(-90deg); }
+        .schedule-periods { transition: max-height 0.3s ease-out; max-height: 2000px; overflow: hidden; }
+        .schedule-periods.collapsed { max-height: 0; display: none; }
+        .schedule-period-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+        .schedule-period-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 18px;
+            border-left: 3px solid #86868c;
+            box-shadow: 0 1px 13px rgb(1, 1, 1);
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .schedule-period-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .schedule-period-subject {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #0f172a;
+            margin-bottom: 12px;
+            padding-right: 100px;
+        }
+        .schedule-period-time { font-size: 0.90rem; color: #2d3137; margin-bottom: 10px; }
+        .schedule-period-room {
+            font-size: 0.90rem;
+            color: #2d3137;
+            margin-bottom: 10px;
+            background: #f1f5f9;
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 10px;
+        }
+        .schedule-period-class {
+            font-size: 0.9rem;
+            color:#2d3137;
+            margin-top: 10px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+        }
+        .schedule-action-buttons {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 6px;
+        }
+        .schedule-delete-btn, .schedule-edit-btn {
+            background: #e6dbdb;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 10px;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+        .schedule-delete-btn { background: #fee2e2; color: #dc2626; }
+        .schedule-delete-btn:hover { background: #f56767; transform: scale(1.05); }
+        .schedule-edit-btn { background: #e0e7ff; color: #4f46e5; }
+        .schedule-edit-btn:hover { background: #c7d2fe; transform: scale(1.05); }
+        .empty-schedule { text-align: center; padding: 60px 20px; background: #fefce8; border-radius: 20px; color: #92400e; }
+        .empty-schedule .icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-schedule button { margin-top: 20px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 10px 24px; border-radius: 30px; color: white; cursor: pointer; }
+        
+        /* Edit Schedule Modal */
+        .edit-schedule-modal .modal-content { max-width: 600px; }
+        .edit-schedule-modal .form-group { margin-bottom: 15px; }
+        .edit-schedule-modal label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+        .edit-schedule-modal input, .edit-schedule-modal select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+        }
+        
+        /* New Features Card Styles */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .data-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+        .data-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .data-card h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .data-card p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .category-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .category-Academic { background: #e3f2fd; color: #1976d2; }
+        .category-Sports { background: #e8f5e9; color: #388e3c; }
+        .category-Cultural { background: #fce4ec; color: #c2185b; }
+        .category-Technical { background: #fff3e0; color: #f57c00; }
+        .priority-High { border-left-color: #dc3545; }
+        .priority-Medium { border-left-color: #ffc107; }
+        .priority-Low { border-left-color: #28a745; }
+        
+        .about-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .about-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .contact-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-content { padding: 1rem; }
+            .tabs { border-radius: 20px; justify-content: center; }
+            .tab { padding: 8px 20px; font-size: 14px; }
+            .stats-grid { gap: 1rem; }
+            .schedule-period-grid { grid-template-columns: 1fr; }
+            .card-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <nav class="navbar">
+            <h2>TEACHER PANEL</h2>
+            <div class="user-info">
+                <span id="teacherName">Loading..</span>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </nav>
+        
+        <div class="dashboard-content">
+            <div class="stats-grid">
+                <div class="stat-card"><h3>Total Students</h3><div class="stat-value" id="totalStudents">0</div></div>
+                <div class="stat-card"><h3>My Class</h3><div class="stat-value" id="myClass">-</div></div>
+                <div class="stat-card"><h3>My Section</h3><div class="stat-value" id="mySection">-</div></div>
+                <div class="stat-card"><h3>My Subjects</h3><div class="stat-value" id="mySubjects">0</div></div>
+                <div class="stat-card"><h3>My Students</h3><div class="stat-value" id="ctCount">0</div></div>
+                <div class="stat-card"><h3>Other Students</h3><div class="stat-value" id="stCount">0</div></div>
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('students')">STUDENTS</div>
+                <div class="tab" onclick="showTab('schedule')">TIME TABLE</div>
+                <div class="tab" onclick="showTab('subjects')">MY SUBJECTS</div>
+                <div class="tab" onclick="showTab('managesubjects')">MANAGE SUBJECTS</div>
+                <div class="tab" onclick="showTab('scores')">ADD SCORE</div>
+                <div class="tab" onclick="showTab('attendance')">ATTENDANCE</div>
+                <div class="tab" onclick="showTab('achievements')">🏆 ACHIEVEMENTS</div>
+                <div class="tab" onclick="showTab('placements')">💼 PLACEMENTS</div>
+                <div class="tab" onclick="showTab('notices')">📢 NOTICES</div>
+                <div class="tab" onclick="showTab('events')">🎪 EVENTS</div>
+                <div class="tab" onclick="showTab('about')">🏛️ ABOUT COLLEGE</div>
+            </div>
+            
+            <!-- Students Tab -->
+            <div id="studentsTab" class="tab-content active">
+                <h2>SEARCH STUDENT</h2>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="🔍 Search by name, roll number, or student ID..." onkeyup="searchStudents()">
+                    <select id="searchFilter" onchange="searchStudents()">
+                        <option value="name">Search by Name</option>
+                        <option value="roll">Search by Roll Number</option>
+                        <option value="id">Search by Student ID</option>
+                    </select>
+                    <button onclick="clearSearch()">Clear</button>
+                </div>
+                <div id="studentsLoading" class="loading">Loading students..</div>
+                
+                <div class="students-sections-container">
+                    <div id="classTeacherCard" class="section-card" style="display: none;">
+                        <h3>MY STUDENTS <span class="badge badge-class-teacher">Class teacher Can view all subjects scores & attendance</span></h3>
+                        <div class="data-table">
+                            <table style="width: 100%;">
+                                <thead><tr><th>ROLL NO</th><th>STUDENT ID</th><th>NAME</th><th>EMAIL</th><th>AVG SCORE</th><th>ATTENDANCE</th><th>ACTIONS</th></tr></thead>
+                                <tbody id="classTeacherStudentsList"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="subjectTeacherCard" class="section-card" style="display: none;">
+                        <h3>OTHER SECTION STUDENTS <span class="badge badge-subject-teacher">Subject teacher can view Only their subjects scores and attendance</span></h3>
+                        <div class="data-table">
+                            <table style="width: 100%;">
+                                <thead><tr><th>ROLL NO</th><th>STUDENT ID</th><th>NAME</th><th>EMAIL</th><th>CLASS</th><th>SECTION</th><th>AVG SCORE</th><th>ATTENDANCE</th><th>ACTIONS</th></tr></thead>
+                                <tbody id="subjectTeacherStudentsList"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="noStudentsMsg" style="display: none; text-align: center; padding: 40px;">No students found</div>
+            </div>
+            
+            <!-- Schedule Tab -->
+            <div id="scheduleTab" class="tab-content">
+                <h2>MY WEEKLY SCHEDULE</h2>
+                <div class="form-card">
+                    <h3>Add New Schedule</h3>
+                    <form id="addScheduleForm">
+                        <div class="schedule-form-row">
+                            <div><label>DAY</label><select id="scheduleDay" required><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select></div>
+                            <div><label>CLASS</label><input type="text" id="scheduleClass" placeholder="BCA 3rd Year" required></div>
+                            <div><label>SECTION</label><input type="text" id="scheduleSection" placeholder="A" required></div>
+                            <div><label>SUBJECT</label><input type="text" id="scheduleSubject" required></div>
+                            <div><label>START TIME</label><input type="time" id="scheduleStart" required></div>
+                            <div><label>END TIME</label><input type="time" id="scheduleEnd" required></div>
+                            <div><label>ROOM NO</label><input type="text" id="scheduleRoom" placeholder="201"></div>
+                        </div>
+                        <button type="submit">+ Add Schedule</button>
+                    </form>
+                </div>
+                <div id="scheduleDisplay" class="schedule-container"><div class="loading">Loading schedule...</div></div>
+            </div>
+            
+            <!-- My Subjects Tab -->
+            <div id="subjectsTab" class="tab-content">
+                <h2>MY SUBJECTS</h2>
+                <div id="subjectsList" style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px;"></div>
+            </div>
+            
+            <!-- Manage Subjects Tab -->
+            <div id="managesubjectsTab" class="tab-content">
+                <h2>MANAGE SUBJECTS</h2>
+                <p style="color: #666; margin-bottom: 20px;">Select your teaching subjects from the list below (these were available during registration)</p>
+                <div class="form-card">
+                    <h3>Select Your Subjects</h3>
+                    <div id="subjectsSelection" style="max-height: 400px; overflow-y: auto;"></div>
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                        <button id="saveSubjectsBtn" class="btn-primary" style="flex:1;margin-left:30px;height:31px;border-radius:2px;margin-top:28px;">Save Selected Subjects</button>
+                        <button onclick="resetSubjects()" class="btn-reset" style="flex:0.5; background:#f2a270; color:rgb(3, 3, 3); border:none; border-radius:2px; padding:10px; cursor:pointer;margin-left:10px;height:30px;margin-top:28px;">↺ Reset</button>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 15px;">
+                    <h3>Your Current Subjects:</h3>
+                    <div id="currentSubjectsList" style="display: flex; flex-wrap: wrap; gap: 13px;"></div>
+                </div>
+            </div>
+            
+            <!-- Scores Tab -->
+            <div id="scoresTab" class="tab-content">
+                <h2>Student Scores:</h2>
+                <div class="search-bar"><input type="text" id="scoreSearch" placeholder="Search student..." onkeyup="filterScoreStudents()"></div>
+                <div id="scoresStudentsList"></div>
+            </div>
+            
+            <!-- Attendance Tab -->
+            <div id="attendanceTab" class="tab-content">
+                <h2>Daily Attendance Management</h2>
+                <div style="background: whitesmoke; padding: 20px; border-radius: 4px; margin-bottom: 25px;">
+                    <label>Select Date:</label>
+                    <input type="date" id="attendanceDate" class="attendance-date">
+                    <button class="mark-all-btn" onclick="loadAttendanceGrid()">Refresh</button>
+                </div>
+                <div class="attendance-section">
+                <h3>Full Day Attendance:</h3>
+                    <div id="fullDayAttendanceGrid"><div class="loading">Loading...</div></div>
+                    <div style="margin-top: 20px;" id="fullDayButtons">
+                        <button class="mark-all-btn" onclick="markAllFullDay('present')">✅ All Present</button>
+                        <button class="mark-all-btn" onclick="markAllFullDay('absent')">❌ All Absent</button>
+                        <br><br>
+                        <button class="mark-all-btn" onclick="markAllFullDay('late')">⏰ All Late</button>
+                    </div>
+                </div>
+                <div class="attendance-section">
+                    <h3>Subject-Wise Attendance:</h3>
+                    <div id="subjectWiseAttendanceGrid"><div class="loading">Loading...</div></div>
+                </div>
+                <button class="btn-primary" onclick="saveAllAttendance()">Save All Attendance</button>
+            </div>
+            
+            <!-- Achievements Tab (NEW - View Only) -->
+            <div id="achievementsTab" class="tab-content">
+                <h2>🏆 College Achievements</h2>
+                <div id="achievementsList" class="card-grid">
+                    <div class="loading">Loading achievements...</div>
+                </div>
+            </div>
+            
+            <!-- Placements Tab (NEW - View Only) -->
+            <div id="placementsTab" class="tab-content">
+                <h2>💼 Placement Records</h2>
+                <div id="placementsList" class="card-grid">
+                    <div class="loading">Loading placements...</div>
+                </div>
+            </div>
+            
+            <!-- Notices Tab (NEW - View Only) -->
+            <div id="noticesTab" class="tab-content">
+                <h2>📢 Notices & Announcements</h2>
+                <div id="noticesList" class="card-grid">
+                    <div class="loading">Loading notices...</div>
+                </div>
+            </div>
+            
+            <!-- Events Tab (NEW - View Only) -->
+            <div id="eventsTab" class="tab-content">
+                <h2>🎪 Upcoming Events</h2>
+                <div id="eventsList" class="card-grid">
+                    <div class="loading">Loading events...</div>
+                </div>
+            </div>
+            
+            <!-- About College Tab (NEW - View Only) -->
+            <div id="aboutTab" class="tab-content">
+                <h2>🏛️ About College</h2>
+                <div id="aboutContent"></div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- Score Modal -->
+    <div id="scoreModal" class="modal">
+        <div class="modal-content">
+            <h3>📊 Student Scores - <span id="modalStudentName"></span></h3>
+            <div id="modalScoresList"></div>
+            <button class="modal-close" onclick="closeScoreModal()">Close</button>
+        </div>
+    </div>
+    
+    <!-- Edit Schedule Modal -->
+    <div id="editScheduleModal" class="modal edit-schedule-modal">
+        <div class="modal-content">
+            <h3>Edit Schedule</h3>
+            <input type="hidden" id="editScheduleIndex">
+            <div class="form-group"><label>DAY</label><select id="editDay"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select></div>
+            <div class="form-group"><label>CLASS</label><input type="text" id="editClass" placeholder="BCA 3rd Year"></div>
+            <div class="form-group"><label>SECTION</label><input type="text" id="editSection" placeholder="A"></div>
+            <div class="form-group"><label>SUBJECT</label><input type="text" id="editSubject"></div>
+            <div class="form-group"><label>START TIME</label><input type="time" id="editStart"></div>
+            <div class="form-group"><label>END TIME</label><input type="time" id="editEnd"></div>
+            <div class="form-group"><label>ROOM NO</label><input type="text" id="editRoom" placeholder="201"></div>
+            <div style="display: flex; gap: 12px; margin-top: 20px;">
+                <button class="btn-primary" onclick="saveEditedSchedule()" style="flex:1;">Save Changes</button>
+                <button class="modal-close" onclick="closeEditModal()" style="background:#6c757d;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token || user.role !== 'teacher') { window.location.href = 'login.html'; }
+        
+        document.getElementById('teacherName').textContent = `Welcome, ${user.name}`;
+        
+        let allStudents = [], classTeacherStudents = [], subjectTeacherStudents = [], teacherSchedule = [], teacherSubjects = [], originalSubjects = [], currentSubjects = [];
+        let fullDayAttendance = {}, subjectAttendance = {};
+        
+        // All registration subjects
+        const allRegistrationSubjects = [
+            'Mathematics', 'Physics', 'Chemistry', 'Computer Science', 'Programming',
+            'Database', 'Web Development', 'Data Structures', 'Operating System',
+            'Computer Networks', 'Software Engineering', 'Cloud Computing',
+            'Management', 'Marketing', 'Finance', 'Economics', 'Accounting', 'Business Law',
+            'Modern Pharmaceutical Techniques', 'Drug Regulatory Affairs', 'Research Methodology',
+            'Numerical Methods', 'Technical Communication', 'History',
+            'Political Science', 'Sociology', 'Geography', 'English', 'Hindi', 'Sanskrit'
+        ];
+        
+        function showTab(tabName) {
+            const tabs = ['students', 'schedule', 'subjects', 'managesubjects', 'scores', 'attendance', 'achievements', 'placements', 'notices', 'events', 'about'];
+            tabs.forEach(t => {
+                document.getElementById(t + 'Tab').classList.remove('active');
+                document.querySelector(`.tab[onclick="showTab('${t}')"]`)?.classList.remove('active');
+            });
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`)?.classList.add('active');
+            if (tabName === 'students') loadStudents();
+            if (tabName === 'schedule') loadSchedule();
+            if (tabName === 'subjects') loadSubjects();
+            if (tabName === 'managesubjects') loadSubjectSelection();
+            if (tabName === 'attendance') { document.getElementById('attendanceDate').valueAsDate = new Date(); loadAttendanceGrid(); }
+            if (tabName === 'achievements') loadAchievements();
+            if (tabName === 'placements') loadPlacements();
+            if (tabName === 'notices') loadNotices();
+            if (tabName === 'events') loadEvents();
+            if (tabName === 'about') loadAboutCollege();
+        }
+        
+        // ============ NEW FEATURE FUNCTIONS (VIEW ONLY) ============
+        
+        async function loadAchievements() {
+            try {
+                const res = await fetch(`${API_URL}/achievements`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('achievementsList');
+                if (data.success && data.achievements && data.achievements.length > 0) {
+                    container.innerHTML = data.achievements.map(a => `
+                        <div class="data-card">
+                            <span class="category-badge category-${a.category}">${a.category}</span>
+                            <h3>${escapeHtml(a.title)}</h3>
+                            <p>${escapeHtml(a.description)}</p>
+                            <small>🏅 ${escapeHtml(a.studentName)} | 📅 ${new Date(a.date).toLocaleDateString()}</small>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p style="text-align:center;">No achievements found.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('achievementsList').innerHTML = '<p style="text-align:center;color:red;">Error loading achievements</p>';
+            }
+        }
+        
+        async function loadPlacements() {
+            try {
+                const res = await fetch(`${API_URL}/placements`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('placementsList');
+                if (data.success && data.placements && data.placements.length > 0) {
+                    container.innerHTML = data.placements.map(p => `
+                        <div class="data-card">
+                            <h3>${escapeHtml(p.studentName)}</h3>
+                            <p><strong>${escapeHtml(p.company)}</strong> | 💰 ${p.package} LPA</p>
+                            <p>💻 ${escapeHtml(p.role)} | 🎓 Batch ${p.batch}</p>
+                            <small>📅 ${new Date(p.date).toLocaleDateString()}</small>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p style="text-align:center;">No placements found.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('placementsList').innerHTML = '<p style="text-align:center;color:red;">Error loading placements</p>';
+            }
+        }
+        
+        async function loadNotices() {
+            try {
+                const res = await fetch(`${API_URL}/notices`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('noticesList');
+                if (data.success && data.notices && data.notices.length > 0) {
+                    container.innerHTML = data.notices.map(n => `
+                        <div class="data-card priority-${n.priority}">
+                            <h3>📌 ${escapeHtml(n.title)}</h3>
+                            <p>${escapeHtml(n.content)}</p>
+                            <small>🎯 ${n.targetAudience} | 🔴 ${n.priority} | 📅 ${new Date(n.createdAt).toLocaleDateString()}</small>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p style="text-align:center;">No notices found.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('noticesList').innerHTML = '<p style="text-align:center;color:red;">Error loading notices</p>';
+            }
+        }
+        
+        async function loadEvents() {
+            try {
+                const res = await fetch(`${API_URL}/events`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('eventsList');
+                if (data.success && data.events && data.events.length > 0) {
+                    container.innerHTML = data.events.map(e => {
+                        const eventDate = new Date(e.date);
+                        return `
+                            <div class="data-card">
+                                <div style="display:flex; gap:15px;">
+                                    <div style="background:#667eea; color:white; padding:10px; border-radius:8px; text-align:center; min-width:70px;">
+                                        <div style="font-size:20px; font-weight:bold;">${eventDate.getDate()}</div>
+                                        <div style="font-size:12px;">${eventDate.toLocaleString('default', { month: 'short' })}</div>
+                                    </div>
+                                    <div style="flex:1;">
+                                        <h3>${escapeHtml(e.title)}</h3>
+                                        <p>⏰ ${e.time} | 📍 ${escapeHtml(e.venue)}</p>
+                                        <p>👨‍🏫 ${escapeHtml(e.organizer || 'College')}</p>
+                                        <small>${e.description.substring(0,100)}...</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<p style="text-align:center;">No upcoming events.</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('eventsList').innerHTML = '<p style="text-align:center;color:red;">Error loading events</p>';
+            }
+        }
+        
+        async function loadAboutCollege() {
+            try {
+                const res = await fetch(`${API_URL}/about`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success && data.about) {
+                    const a = data.about;
+                    document.getElementById('aboutContent').innerHTML = `
+                        <div class="about-section">
+                            <h3>🏛️ ${escapeHtml(a.collegeName || 'BCA College')}</h3>
+                            <hr>
+                            <h3>📜 History</h3>
+                            <p>${escapeHtml(a.history || 'Established with a vision to provide quality education.')}</p>
+                            <h3>👁️ Vision</h3>
+                            <p>${escapeHtml(a.vision || 'To be a center of excellence in education.')}</p>
+                            <h3>🎯 Mission</h3>
+                            <p>${escapeHtml(a.mission || 'To provide holistic education and develop future leaders.')}</p>
+                        </div>
+                        <div class="about-section">
+                            <h3>📞 Contact Information</h3>
+                            <div class="contact-item">📧 ${escapeHtml(a.contactEmail || 'info@college.edu')}</div>
+                            <div class="contact-item">📞 ${escapeHtml(a.contactPhone || '+91 1234567890')}</div>
+                            <div class="contact-item">📍 ${escapeHtml(a.address || 'College Road, City')}</div>
+                            <div class="contact-item">👨‍🏫 Principal: ${escapeHtml(a.principalName || 'Dr. Name')}</div>
+                            <div class="contact-item">📅 Established: ${a.establishedYear || 2000}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('aboutContent').innerHTML = '<p style="text-align:center;color:red;">Error loading college information</p>';
+            }
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // ============ EXISTING FUNCTIONS (Unchanged) ============
+        
+        async function loadStudents() {
+            try {
+                const res = await fetch(`${API_URL}/teacher/my-students`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('myClass').textContent = data.teacher?.assignedClass || '-';
+                    document.getElementById('mySection').textContent = data.teacher?.assignedSection || '-';
+                    document.getElementById('totalStudents').textContent = data.totalStudents || 0;
+                    document.getElementById('mySubjects').textContent = data.teacher?.subjects?.length || 0;
+                    teacherSubjects = data.teacher?.subjects || [];
+                    originalSubjects = [...teacherSubjects]; currentSubjects = [...teacherSubjects];
+                    classTeacherStudents = data.classTeacherStudents || [];
+                    subjectTeacherStudents = data.subjectTeacherStudents || [];
+                    allStudents = [...classTeacherStudents, ...subjectTeacherStudents];
+                    document.getElementById('ctCount').textContent = classTeacherStudents.length;
+                    document.getElementById('stCount').textContent = subjectTeacherStudents.length;
+                    displayStudents();
+                }
+            } catch (error) { console.error('Error:', error); document.getElementById('studentsLoading').innerHTML = 'Error loading students'; }
+        }
+        
+        function displayStudents() {
+            document.getElementById('studentsLoading').style.display = 'none';
+            if (classTeacherStudents.length > 0) {
+                document.getElementById('classTeacherCard').style.display = 'block';
+                const ctBody = document.getElementById('classTeacherStudentsList');
+                ctBody.innerHTML = '';
+                classTeacherStudents.forEach(s => {
+                    const row = ctBody.insertRow();
+                    row.insertCell(0).textContent = s.rollNumber || '-';
+                    row.insertCell(1).textContent = s.studentId || '-';
+                    row.insertCell(2).innerHTML = `<strong>${s.name}</strong>`;
+                    row.insertCell(3).textContent = s.email || '-';
+                    row.insertCell(4).innerHTML = `<span style="color:${(s.averageScore||0)>=75?'green':'orange'}">${s.averageScore||0}%</span>`;
+                    row.insertCell(5).innerHTML = `<span style="color:${(s.attendancePercentage||0)>=75?'green':'orange'}">${s.attendancePercentage||0}%</span>`;
+                    row.insertCell(6).innerHTML = `<button class="btn-view" onclick="viewStudentScoresInline('${s._id}', '${s.name}')">View Scores</button>
+                        <button class="btn-edit" onclick="addScoreInline('${s._id}', '${s.name}')">Add Score</button>`;
+                });
+            }
+            if (subjectTeacherStudents.length > 0) {
+                document.getElementById('subjectTeacherCard').style.display = 'block';
+                const stBody = document.getElementById('subjectTeacherStudentsList');
+                stBody.innerHTML = '';
+                subjectTeacherStudents.forEach(s => {
+                    const row = stBody.insertRow();
+                    row.insertCell(0).textContent = s.rollNumber || '-';
+                    row.insertCell(1).textContent = s.studentId || '-';
+                    row.insertCell(2).innerHTML = `<strong>${s.name}</strong>`;
+                    row.insertCell(3).textContent = s.email || '-';
+                    row.insertCell(4).textContent = s.className || '-';
+                    row.insertCell(5).textContent = s.section || '-';
+                    row.insertCell(6).innerHTML = `<span style="color:${(s.averageScore||0)>=75?'green':'orange'}">${s.averageScore||0}%</span>`;
+                    row.insertCell(7).innerHTML = `<span style="color:${(s.attendancePercentage||0)>=75?'green':'orange'}">${s.attendancePercentage||0}%</span>`;
+                    row.insertCell(8).innerHTML = `<button class="btn-view" onclick="viewStudentScoresInline('${s._id}', '${s.name}')">View Scores</button>
+                        <button class="btn-edit" onclick="addScoreInline('${s._id}', '${s.name}')">Add Score</button>`;
+                });
+            }
+            if (classTeacherStudents.length === 0 && subjectTeacherStudents.length === 0) {
+                document.getElementById('noStudentsMsg').style.display = 'block';
+            } else {
+                document.getElementById('noStudentsMsg').style.display = 'none';
+            }
+        }
+        
+        // ============ SCORE FUNCTIONS ============
+        window.viewStudentScoresInline = async (studentId, studentName) => {
+            try {
+                const response = await fetch(`${API_URL}/teacher/student-scores/${studentId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await response.json();
+                document.getElementById('modalStudentName').textContent = studentName;
+                const modalContent = document.getElementById('modalScoresList');
+                if (data.success && data.scores && data.scores.length > 0) {
+                    let html = `<table class="score-table"><thead><th>Subject</th><th>Obtained Marks</th><th>Max Marks</th><th>Percentage</th><th>Grade</th><th>Exam Type</th><th>Actions</th></thead><tbody>`;
+                    data.scores.forEach(score => {
+                        html += `<tr id="score-row-${score._id}"><td>${score.subject}</td><td id="marks-${score._id}">${score.obtainedMarks}</td><td id="max-${score._id}">${score.maxMarks}</td><td>${score.percentage}%</td><td>${score.grade}</td><td>${score.examType || 'Weekly Test'}</td><td><button class="btn-edit" onclick="enableInlineEdit('${score._id}')">✏️ Edit</button><button class="btn-delete" onclick="deleteScoreInline('${score._id}')">🗑️ Delete</button></td></tr>`;
+                    });
+                    html += `</tbody></table>`;
+                    modalContent.innerHTML = html;
+                } else { modalContent.innerHTML = `<div style="text-align:center;padding:40px;">📭 No scores recorded for this student</div>`; }
+                document.getElementById('scoreModal').style.display = 'flex';
+            } catch (error) { alert('Error loading scores'); }
+        };
+        
+        window.enableInlineEdit = (scoreId) => {
+            const marksCell = document.getElementById(`marks-${scoreId}`);
+            const maxCell = document.getElementById(`max-${scoreId}`);
+            const row = document.getElementById(`score-row-${scoreId}`);
+            const currentMarks = marksCell.innerText;
+            const currentMax = maxCell.innerText;
+            marksCell.innerHTML = `<input type="number" id="edit-marks-${scoreId}" value="${currentMarks}" class="edit-score-input" min="0">`;
+            maxCell.innerHTML = `<input type="number" id="edit-max-${scoreId}" value="${currentMax}" class="edit-score-input" min="1">`;
+            row.cells[6].innerHTML = `<button class="save-score-btn" onclick="saveInlineEdit('${scoreId}')">💾 Save</button><button class="cancel-edit-btn" onclick="cancelInlineEdit('${scoreId}', '${currentMarks}', '${currentMax}')">❌ Cancel</button>`;
+        };
+        
+        window.saveInlineEdit = async (scoreId) => {
+            const newMarks = document.getElementById(`edit-marks-${scoreId}`).value;
+            const newMax = document.getElementById(`edit-max-${scoreId}`).value;
+            if (!newMarks || !newMax) { alert('Please fill both fields'); return; }
+            if (parseInt(newMarks) > parseInt(newMax)) { alert('Obtained marks cannot exceed maximum marks!'); return; }
+            try {
+                const response = await fetch(`${API_URL}/teacher/edit-score/${scoreId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ obtainedMarks: parseInt(newMarks), maxMarks: parseInt(newMax) }) });
+                const data = await response.json();
+                if (data.success) { alert('✅ Score updated successfully!'); viewStudentScoresInline(data.score.studentId, document.getElementById('modalStudentName').innerText); }
+                else alert('❌ Error: ' + data.message);
+            } catch (error) { alert('Error updating score'); }
+        };
+        
+        window.cancelInlineEdit = (scoreId, originalMarks, originalMax) => {
+            document.getElementById(`marks-${scoreId}`).innerHTML = originalMarks;
+            document.getElementById(`max-${scoreId}`).innerHTML = originalMax;
+            const row = document.getElementById(`score-row-${scoreId}`);
+            row.cells[6].innerHTML = `<button class="btn-edit" onclick="enableInlineEdit('${scoreId}')">✏️ Edit</button><button class="btn-delete" onclick="deleteScoreInline('${scoreId}')">🗑️ Delete</button>`;
+        };
+        
+        window.deleteScoreInline = async (scoreId) => {
+            if (!confirm('Are you sure you want to delete this score?')) return;
+            try {
+                const response = await fetch(`${API_URL}/teacher/delete-score/${scoreId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await response.json();
+                if (data.success) { alert('✅ Score deleted successfully!'); viewStudentScoresInline(document.getElementById('modalStudentName').dataset?.studentId, document.getElementById('modalStudentName').innerText); loadStudents(); }
+                else alert('❌ Error: ' + data.message);
+            } catch (error) { alert('Error deleting score'); }
+        };
+        
+        window.addScoreInline = async (studentId, studentName) => {
+            if (!teacherSubjects.length) { alert('No subjects assigned. Please manage subjects first.'); return; }
+            const subject = prompt(`Enter subject for ${studentName}\nAvailable: ${teacherSubjects.join(', ')}`, teacherSubjects[0]);
+            if (!subject) return;
+            if (!teacherSubjects.includes(subject)) { alert(`You are not authorized to add scores for ${subject}. You only teach: ${teacherSubjects.join(', ')}`); return; }
+            const obtainedMarks = prompt('Enter obtained marks:'); if (!obtainedMarks) return;
+            const maxMarks = prompt('Enter maximum marks:', '100'); if (!maxMarks) return;
+            const examType = prompt('Exam type:', 'Weekly Test');
+            if (parseInt(obtainedMarks) > parseInt(maxMarks)) { alert('Obtained marks cannot exceed maximum marks!'); return; }
+            try {
+                const response = await fetch(`${API_URL}/teacher/scores`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ studentId, subject, obtainedMarks: parseInt(obtainedMarks), maxMarks: parseInt(maxMarks), examType: examType || 'Weekly Test', remarks: '' }) });
+                const data = await response.json();
+                if (data.success) { alert('✅ Score added successfully!'); loadStudents(); } else alert('❌ Error: ' + data.message);
+            } catch (error) { alert('Error adding score'); }
+        };
+        
+        function closeScoreModal() { document.getElementById('scoreModal').style.display = 'none'; }
+        function closeEditModal() { document.getElementById('editScheduleModal').style.display = 'none'; }
+        
+        function searchStudents() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filter = document.getElementById('searchFilter').value;
+            let filteredCT = classTeacherStudents, filteredST = subjectTeacherStudents;
+            if (term) {
+                if (filter === 'name') { filteredCT = filteredCT.filter(s => s.name?.toLowerCase().includes(term)); filteredST = filteredST.filter(s => s.name?.toLowerCase().includes(term)); }
+                if (filter === 'roll') { filteredCT = filteredCT.filter(s => s.rollNumber?.toLowerCase().includes(term)); filteredST = filteredST.filter(s => s.rollNumber?.toLowerCase().includes(term)); }
+                if (filter === 'id') { filteredCT = filteredCT.filter(s => s.studentId?.toLowerCase().includes(term)); filteredST = filteredST.filter(s => s.studentId?.toLowerCase().includes(term)); }
+            }
+            displayFilteredStudents(filteredCT, filteredST);
+        }
+        
+        function displayFilteredStudents(ct, st) {
+            if (ct.length) {
+                document.getElementById('classTeacherCard').style.display = 'block';
+                const ctBody = document.getElementById('classTeacherStudentsList');
+                ctBody.innerHTML = '';
+                ct.forEach(s => { const row = ctBody.insertRow(); row.insertCell(0).textContent = s.rollNumber||'-'; row.insertCell(1).textContent = s.studentId||'-'; row.insertCell(2).innerHTML = `<strong>${s.name}</strong>`; row.insertCell(3).textContent = s.email||'-'; row.insertCell(4).innerHTML = `${s.averageScore||0}%`; row.insertCell(5).innerHTML = `${s.attendancePercentage||0}%`; row.insertCell(6).innerHTML = `<button class="btn-view" onclick="viewStudentScoresInline('${s._id}', '${s.name}')">View Scores</button><button class="btn-edit" onclick="addScoreInline('${s._id}', '${s.name}')">Add Score</button>`; });
+            } else { document.getElementById('classTeacherCard').style.display = 'none'; }
+            if (st.length) {
+                document.getElementById('subjectTeacherCard').style.display = 'block';
+                const stBody = document.getElementById('subjectTeacherStudentsList');
+                stBody.innerHTML = '';
+                st.forEach(s => { const row = stBody.insertRow(); row.insertCell(0).textContent = s.rollNumber||'-'; row.insertCell(1).textContent = s.studentId||'-'; row.insertCell(2).innerHTML = `<strong>${s.name}</strong>`; row.insertCell(3).textContent = s.email||'-'; row.insertCell(4).textContent = s.className||'-'; row.insertCell(5).textContent = s.section||'-'; row.insertCell(6).innerHTML = `${s.averageScore||0}%`; row.insertCell(7).innerHTML = `${s.attendancePercentage||0}%`; row.insertCell(8).innerHTML = `<button class="btn-view" onclick="viewStudentScoresInline('${s._id}', '${s.name}')">View Scores</button><button class="btn-edit" onclick="addScoreInline('${s._id}', '${s.name}')">Add Score</button>`; });
+            } else { document.getElementById('subjectTeacherCard').style.display = 'none'; }
+        }
+        
+        function clearSearch() { document.getElementById('searchInput').value = ''; displayStudents(); }
+        function filterScoreStudents() {
+            const term = document.getElementById('scoreSearch').value.toLowerCase();
+            const filtered = allStudents.filter(s => s.name?.toLowerCase().includes(term));
+            const container = document.getElementById('scoresStudentsList');
+            if (!filtered.length) { container.innerHTML = '<div style="text-align:center;padding:40px;">No students found</div>'; return; }
+            container.innerHTML = filtered.map(s => `<div style="background:#f8f9fa;padding:15px;margin-bottom:12px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;"><div><strong>${s.name}</strong><br><small>Roll: ${s.rollNumber}</small></div><div><button class="btn-view" onclick="viewStudentScoresInline('${s._id}', '${s.name}')">View Scores</button><button class="btn-edit" onclick="addScoreInline('${s._id}', '${s.name}')">Add Score</button></div></div>`).join('');
+        }
+        
+        // ============ SCHEDULE FUNCTIONS ============
+        async function loadSchedule() {
+            try {
+                const res = await fetch(`${API_URL}/teacher/schedule`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) { teacherSchedule = data.schedule || []; displayScheduleTable(); }
+            } catch(e) { console.error(e); }
+        }
+        
+        function displayScheduleTable() {
+            const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            let html = '<div class="schedule-timetable">';
+            for (const day of days) {
+                const schedules = teacherSchedule.filter(s => s.day === day);
+                html += `<div class="schedule-day-card">
+                    <div class="schedule-day-header" onclick="this.classList.toggle('collapsed');this.nextElementSibling.classList.toggle('collapsed')">
+                        <h3>📅 ${day} <span class="schedule-count">${schedules.length} period(s)</span></h3>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="schedule-periods"><div class="schedule-period-grid">`;
+                for (let idx = 0; idx < schedules.length; idx++) {
+                    const p = schedules[idx];
+                    html += `<div class="schedule-period-card">
+                        <div class="schedule-action-buttons">
+                            <button class="schedule-edit-btn" onclick="openEditModal(${teacherSchedule.findIndex(s => s.day === p.day && s.startTime === p.startTime)})">✏️ Edit</button>
+                            <button class="schedule-delete-btn" onclick="deleteScheduleItem('${p.day}','${p.startTime}')">🗑️</button>
+                        </div>
+                        <div class="schedule-period-subject">📖 ${p.subject}</div>
+                        <div class="schedule-period-time">⏰ ${p.startTime} - ${p.endTime}</div>
+                        <div class="schedule-period-room">🏠 Room: ${p.room||'N/A'}</div>
+                        <div class="schedule-period-class">📚 ${p.class||'N/A'} | 📋 Section: ${p.section||'N/A'}</div>
+                    </div>`;
+                }
+                html += `</div></div></div>`;
+            }
+            html += `</div>`;
+            if (!teacherSchedule.length) html = `<div class="empty-schedule"><div class="icon"></div><h4>No Schedule</h4><button onclick="document.querySelector('.form-card').scrollIntoView({behavior:'smooth'})">Add Schedule please:</button></div>`;
+            document.getElementById('scheduleDisplay').innerHTML = html;
+        }
+
+        function openEditModal(index) {
+            const schedule = teacherSchedule[index];
+            if (!schedule) return;
+            document.getElementById('editScheduleIndex').value = index;
+            document.getElementById('editDay').value = schedule.day;
+            document.getElementById('editClass').value = schedule.class || '';
+            document.getElementById('editSection').value = schedule.section || '';
+            document.getElementById('editSubject').value = schedule.subject;
+            document.getElementById('editStart').value = schedule.startTime;
+            document.getElementById('editEnd').value = schedule.endTime;
+            document.getElementById('editRoom').value = schedule.room || '';
+            document.getElementById('editScheduleModal').style.display = 'flex';
+        }
+        
+        async function saveEditedSchedule() {
+            const index = parseInt(document.getElementById('editScheduleIndex').value);
+            const updatedSchedule = {
+                day: document.getElementById('editDay').value,
+                class: document.getElementById('editClass').value,
+                section: document.getElementById('editSection').value,
+                subject: document.getElementById('editSubject').value,
+                startTime: document.getElementById('editStart').value,
+                endTime: document.getElementById('editEnd').value,
+                room: document.getElementById('editRoom').value || 'N/A'
+            };
+            if (!updatedSchedule.class || !updatedSchedule.section || !updatedSchedule.subject || !updatedSchedule.startTime || !updatedSchedule.endTime) {
+                showToast('Fill all fields','error');
+                return;
+            }
+            teacherSchedule[index] = updatedSchedule;
+            try {
+                const res = await fetch(`${API_URL}/teacher/schedule`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ schedule: teacherSchedule }) });
+                const data = await res.json();
+                if (data.success) { displayScheduleTable(); closeEditModal(); showToast('Schedule updated','success'); }
+                else showToast('Error','error');
+            } catch(e) { showToast('Error','error'); }
+        }
+        
+        async function deleteScheduleItem(day, startTime) {
+            if (!confirm(`Delete schedule for ${day} at ${startTime}?`)) return;
+            const updated = teacherSchedule.filter(s => !(s.day === day && s.startTime === startTime));
+            try {
+                const res = await fetch(`${API_URL}/teacher/schedule`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ schedule: updated }) });
+                const data = await res.json();
+                if (data.success) { teacherSchedule = updated; displayScheduleTable(); showToast('Deleted','success'); }
+                else showToast('Error','error');
+            } catch(e) { showToast('Error','error'); }
+        }
+        
+        document.getElementById('addScheduleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newSchedule = {
+                day: document.getElementById('scheduleDay').value,
+                class: document.getElementById('scheduleClass').value,
+                section: document.getElementById('scheduleSection').value,
+                subject: document.getElementById('scheduleSubject').value,
+                startTime: document.getElementById('scheduleStart').value,
+                endTime: document.getElementById('scheduleEnd').value,
+                room: document.getElementById('scheduleRoom').value || 'N/A'
+            };
+            if (!newSchedule.class || !newSchedule.section || !newSchedule.subject || !newSchedule.startTime || !newSchedule.endTime) {
+                showToast('Fill all fields','error'); return;
+            }
+            const updated = [...teacherSchedule, newSchedule];
+            try {
+                const res = await fetch(`${API_URL}/teacher/schedule`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ schedule: updated }) });
+                const data = await res.json();
+                if (data.success) { teacherSchedule = updated; displayScheduleTable(); document.getElementById('addScheduleForm').reset(); showToast('Schedule added','success'); }
+                else showToast('Error','error');
+            } catch(e) { showToast('Error','error'); }
+        });
+        
+        function loadSubjects() {
+            const container = document.getElementById('subjectsList');
+            if (!teacherSubjects.length) { container.innerHTML = '<p>No subjects</p>'; return; }
+            container.innerHTML = teacherSubjects.map(s => `<div style="background:linear-gradient(135deg,#667eea15,#764ba215);padding:20px;border-radius:15px;text-align:center;"><div style="font-size:40px;">📖</div><h3>${s}</h3></div>`).join('');
+        }
+        
+        async function loadSubjectSelection() {
+            try {
+                const cur = await fetch(`${API_URL}/teacher/my-subjects`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const curData = await cur.json();
+                const mySubjects = curData.subjects || [];
+                window.originalSubjects = [...mySubjects]; window.currentSubjects = [...mySubjects];
+                displayCurrentSubjects(mySubjects);
+                let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;">';
+                allRegistrationSubjects.forEach(sub => {
+                    const checked = mySubjects.includes(sub);
+                    html += `<label style="display:flex;align-items:center;gap:12px;padding:12px;background:white;border-radius:12px;border:1px solid ${checked?'#28a745':'#ddd'}; cursor:pointer;">
+                        <input type="checkbox" value="${sub}" class="subject-checkbox" ${checked?'checked':''} onchange="updateSubjects(this)">
+                        <span>📖 ${sub}</span>
+                    </label>`;
+                });
+                html += '</div>';
+                document.getElementById('subjectsSelection').innerHTML = html;
+                updateSaveBtn();
+            } catch(e) { console.error(e); }
+        }
+        
+        function displayCurrentSubjects(subs) {
+            const container = document.getElementById('currentSubjectsList');
+            if (!subs.length) { container.innerHTML = '<p>No subjects selected</p>'; return; }
+            container.innerHTML = subs.map(s => `<span style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:8px 18px;border-radius:30px;">📖 ${s}</span>`).join('');
+        }
+        
+        function updateSubjects(cb) {
+            const sub = cb.value;
+            if (cb.checked) { if (!window.currentSubjects.includes(sub)) window.currentSubjects.push(sub); }
+            else { window.currentSubjects = window.currentSubjects.filter(s => s !== sub); }
+            updateSaveBtn();
+        }
+        
+        function updateSaveBtn() {
+            const btn = document.getElementById('saveSubjectsBtn');
+            const changed = JSON.stringify(window.originalSubjects.sort()) !== JSON.stringify(window.currentSubjects.sort());
+            if (changed) { btn.style.background = "#ffc107"; btn.style.color = "#333"; btn.textContent = "⚠️ Save Changes"; }
+            else { btn.style.background = "#28a745"; btn.style.color = "white"; btn.textContent = "Save"; }
+        }
+        
+        function resetSubjects() {
+            window.currentSubjects = [...window.originalSubjects];
+            document.querySelectorAll('.subject-checkbox').forEach(cb => { cb.checked = window.currentSubjects.includes(cb.value); cb.parentElement.style.borderColor = cb.checked ? '#28a745' : '#ddd'; });
+            displayCurrentSubjects(window.currentSubjects);
+            updateSaveBtn();
+            showToast('Reset to original subjects', 'info');
+        }
+        
+        async function saveSelectedSubjects() {
+            if (!window.currentSubjects.length) { showToast('Select at least one subject','error'); return; }
+            const btn = document.getElementById('saveSubjectsBtn');
+            const origText = btn.textContent;
+            btn.textContent = 'Saving...'; btn.disabled = true;
+            try {
+                const res = await fetch(`${API_URL}/teacher/my-subjects`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ subjects: window.currentSubjects }) });
+                const data = await res.json();
+                if (data.success) { showToast('✅ Subjects saved!','success'); window.originalSubjects = [...window.currentSubjects]; displayCurrentSubjects(window.currentSubjects); document.getElementById('mySubjects').textContent = window.currentSubjects.length; teacherSubjects = window.currentSubjects; loadSubjects(); updateSaveBtn(); }
+                else showToast('Error: ' + data.message,'error');
+            } catch(e) { showToast('Error saving subjects','error'); }
+            finally { btn.textContent = origText; btn.disabled = false; }
+        }
+        document.getElementById('saveSubjectsBtn').addEventListener('click', saveSelectedSubjects);
+        
+        async function loadAttendanceGrid() {
+            const date = document.getElementById('attendanceDate').value;
+            if (!date) { showToast('Select date','error'); return; }
+            await loadStudents();
+            if (classTeacherStudents.length) {
+                fullDayAttendance = {};
+                classTeacherStudents.forEach(s => fullDayAttendance[s._id] = 'present');
+                let html = `<table class="attendance-table"><thead><th>Roll No</th><th>Student Name</th><th>Status</th></thead><tbody>`;
+                classTeacherStudents.forEach(s => {
+                    html += `<tr><td>${s.rollNumber||'-'}</td><td><strong>${s.name}</strong></td><td><div class="attendance-status"><button class="status-btn status-present status-selected" onclick="setFullDayStatus('${s._id}','present',this)">P</button><button class="status-btn status-absent" onclick="setFullDayStatus('${s._id}','absent',this)">A</button><button class="status-btn status-late" onclick="setFullDayStatus('${s._id}','late',this)">L</button></div></td></tr>`;
+                });
+                html += `</tbody></table>`;
+                document.getElementById('fullDayAttendanceGrid').innerHTML = html;
+            } else {
+                document.getElementById('fullDayAttendanceGrid').innerHTML = '<div style="text-align:center;padding:40px;">No students in your section</div>';
+                document.getElementById('fullDayButtons').style.display = 'none';
+            }
+            if (allStudents.length && teacherSubjects.length) {
+                subjectAttendance = {};
+                allStudents.forEach(s => { subjectAttendance[s._id] = {}; teacherSubjects.forEach(sub => subjectAttendance[s._id][sub] = 'present'); });
+                let html = `<div class="subject-attendance-grid"><table class="attendance-table"><thead><th>Student</th>`;
+                teacherSubjects.forEach(sub => html += `<th>${sub}</th>`);
+                html += `</thead><tbody>`;
+                allStudents.forEach(s => {
+                    html += `<tr><td><strong>${s.name}</strong><br><small>${s.className||''} - ${s.section||''}</small></td>`;
+                    teacherSubjects.forEach(sub => {
+                        html += `<td><div class="attendance-status"><button class="status-btn status-present status-selected" onclick="setSubjectStatus('${s._id}','${sub}','present',this)">P</button><button class="status-btn status-absent" onclick="setSubjectStatus('${s._id}','${sub}','absent',this)">A</button><button class="status-btn status-late" onclick="setSubjectStatus('${s._id}','${sub}','late',this)">L</button></div></td>`;
+                    });
+                    html += `</tr>`;
+                });
+                html += `</tbody></table></div>`;
+                document.getElementById('subjectWiseAttendanceGrid').innerHTML = html;
+            }
+        }
+        
+        window.setFullDayStatus = (id, status, btn) => { fullDayAttendance[id] = status; btn.parentElement.querySelectorAll('.status-btn').forEach(b => b.classList.remove('status-selected')); btn.classList.add('status-selected'); };
+        window.setSubjectStatus = (id, sub, status, btn) => { if(!subjectAttendance[id]) subjectAttendance[id]={}; subjectAttendance[id][sub]=status; btn.parentElement.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('status-selected')); btn.classList.add('status-selected'); };
+        window.markAllFullDay = (status) => { Object.keys(fullDayAttendance).forEach(id => fullDayAttendance[id] = status); document.querySelectorAll('#fullDayAttendanceGrid .status-btn').forEach(btn => { if(btn.classList.contains(`status-${status}`)) btn.classList.add('status-selected'); else btn.classList.remove('status-selected'); }); };
+        
+        window.saveAllAttendance = async () => {
+            const date = document.getElementById('attendanceDate').value;
+            if (!date) return;
+            let success = 0;
+            for (const [id, status] of Object.entries(fullDayAttendance)) {
+                try { await fetch(`${API_URL}/teacher/attendance`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ studentId: id, subject: 'Full Day', status, date }) }); success++; } catch(e) {}
+            }
+            for (const [id, subs] of Object.entries(subjectAttendance)) {
+                for (const [sub, status] of Object.entries(subs)) {
+                    try { await fetch(`${API_URL}/teacher/attendance`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ studentId: id, subject: sub, status, date }) }); success++; } catch(e) {}
+                }
+            }
+            showToast(`Saved ${success} records`,'success');
+        };
+        
+        function showToast(msg, type) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `position:fixed;bottom:25px;right:25px;background:${type==='success'?'#28a745':type==='error'?'#dc3545':'#17a2b8'};color:white;padding:14px 24px;border-radius:12px;z-index:9999;box-shadow:0 5px 20px rgba(0,0,0,0.2);`;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+        
+        loadStudents(); loadSchedule();
+    </script>
+</body>
+</html>

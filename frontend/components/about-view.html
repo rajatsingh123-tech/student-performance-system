@@ -1,0 +1,51 @@
+<div class="about-container">
+    <h2>🏛️ About College</h2>
+    <div id="aboutContent"></div>
+</div>
+
+<style>
+.about-container { padding: 20px; }
+.about-section { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.about-section h3 { color: #667eea; margin-bottom: 10px; }
+.contact-item { padding: 8px 0; border-bottom: 1px solid #eee; }
+</style>
+
+<script>
+async function loadAbout() {
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:5000/api/about', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success && data.about) {
+            const a = data.about;
+            document.getElementById('aboutContent').innerHTML = `
+                <div class="about-section">
+                    <h3>📜 History</h3>
+                    <p>${a.history || 'Established with a vision to provide quality education.'}</p>
+                </div>
+                <div class="about-section">
+                    <h3>👁️ Vision</h3>
+                    <p>${a.vision || 'To be a center of excellence in education.'}</p>
+                </div>
+                <div class="about-section">
+                    <h3>🎯 Mission</h3>
+                    <p>${a.mission || 'To provide holistic education and develop future leaders.'}</p>
+                </div>
+                <div class="about-section">
+                    <h3>📞 Contact</h3>
+                    <div class="contact-item">📧 ${a.contactEmail || 'info@college.edu'}</div>
+                    <div class="contact-item">📞 ${a.contactPhone || '+91 1234567890'}</div>
+                    <div class="contact-item">📍 ${a.address || 'College Road, City'}</div>
+                    <div class="contact-item">👨‍🏫 Principal: ${a.principalName || 'Dr. Name'}</div>
+                    <div class="contact-item">📅 Established: ${a.establishedYear || 2000}</div>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+loadAbout();
+</script>

@@ -1,0 +1,37 @@
+<div class="achievements-container">
+    <h2>🏆 Achievements</h2>
+    <div id="achievementsList"></div>
+</div>
+
+<style>
+.achievements-container { padding: 20px; }
+.achievement-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.achievement-card h3 { margin: 0 0 10px 0; color: #333; }
+.category { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 12px; background: #667eea; color: white; }
+</style>
+
+<script>
+async function loadAchievements() {
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:5000/api/achievements', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success && data.achievements) {
+            const container = document.getElementById('achievementsList');
+            container.innerHTML = data.achievements.map(a => `
+                <div class="achievement-card">
+                    <span class="category">${a.category}</span>
+                    <h3>${a.title}</h3>
+                    <p>${a.description}</p>
+                    <small>🏅 ${a.studentName} | 📅 ${new Date(a.date).toLocaleDateString()}</small>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+loadAchievements();
+</script>

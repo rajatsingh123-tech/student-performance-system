@@ -1,0 +1,48 @@
+<div class="events-container">
+    <h2>🎪 Events</h2>
+    <div id="eventsList"></div>
+</div>
+
+<style>
+.events-container { padding: 20px; }
+.event-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; display: flex; gap: 15px; }
+.event-date { background: #667eea; color: white; padding: 10px; border-radius: 8px; text-align: center; min-width: 80px; }
+.event-date .day { font-size: 24px; font-weight: bold; }
+.event-details { flex: 1; }
+.event-title { font-weight: bold; font-size: 18px; margin-bottom: 5px; }
+</style>
+
+<script>
+async function loadEvents() {
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:5000/api/events', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success && data.events) {
+            const container = document.getElementById('eventsList');
+            container.innerHTML = data.events.map(e => {
+                const date = new Date(e.date);
+                return `
+                    <div class="event-card">
+                        <div class="event-date">
+                            <div class="day">${date.getDate()}</div>
+                            <div class="month">${date.toLocaleString('default', { month: 'short' })}</div>
+                        </div>
+                        <div class="event-details">
+                            <div class="event-title">${e.title}</div>
+                            <div>⏰ ${e.time} | 📍 ${e.venue}</div>
+                            <div>👨‍🏫 ${e.organizer || 'College'}</div>
+                            <p>${e.description.substring(0, 100)}...</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+loadEvents();
+</script>

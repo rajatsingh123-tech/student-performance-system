@@ -2178,8 +2178,17 @@
     `;
 }     
 
-    function createTeacherReportHTML(teacher, students) {
-    const subjectsCount = teacher.subjects ? teacher.subjects.length : 0;
+   function createTeacherReportHTML(teacher, students) {
+    // Get subjects count properly from teacher object
+    let subjectsList = [];
+    if (teacher.subjects) {
+        if (Array.isArray(teacher.subjects)) {
+            subjectsList = teacher.subjects;
+        } else if (typeof teacher.subjects === 'string') {
+            subjectsList = teacher.subjects.split(',').map(s => s.trim());
+        }
+    }
+    const subjectsCount = subjectsList.length;
     const overallAvg = teacher.overallAverageScore || '0';
     
     return `
@@ -2197,7 +2206,7 @@
                     <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Assigned Class:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${teacher.assignedClass || 'Not Assigned'}</td></tr>
                     <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Assigned Section:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${teacher.assignedSection || 'Not Assigned'}</td></tr>
                     <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Total Students:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${teacher.totalStudents || 0}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Subjects Teaching:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${teacher.subjects && teacher.subjects.length > 0 ? teacher.subjects.join(', ') : 'Not Assigned'}</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Subjects Teaching:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${subjectsCount > 0 ? subjectsList.join(', ') : 'Not Assigned'}</td></tr>
                 </table>
             </div>
             
@@ -2231,18 +2240,22 @@
                         <th style="padding:10px; text-align:center; border:1px solid #ddd;">Average Score</th>
                     </tr></thead>
                     <tbody>
-                        ${students && students.length > 0 ? students.map((s, idx) => `
-                            <tr style="background:${idx % 2 === 0 ? '#f8f9fa' : 'white'};">
-                                <td style="padding:8px; border:1px solid #ddd;">${s.name || 'N/A'}</td>
-                                <td style="padding:8px; border:1px solid #ddd;">${s.email || 'N/A'}</td>
-                                <td style="padding:8px; border:1px solid #ddd;">${s.studentId || 'N/A'}</td>
-                                <td style="padding:8px; border:1px solid #ddd;">${s.rollNumber || 'N/A'}</td>
-                                <td style="padding:8px; border:1px solid #ddd;">${s.className || 'N/A'}</td>
-                                <td style="padding:8px; text-align:center; border:1px solid #ddd;">
-                                    <span style="color:${parseFloat(s.averageScore) >= 75 ? '#28a745' : (parseFloat(s.averageScore) >= 50 ? '#ffc107' : '#dc3545')}; font-weight:bold;">${s.averageScore || 0}%</span>
-                                </td>
-                            </tr>
-                        `).join('') : '<tr><td colspan="6" style="text-align:center; padding:20px;">No students assigned</td></tr>'}
+                        ${students && students.length > 0 ? students.map((s, idx) => {
+                            const score = parseFloat(s.averageScore) || 0;
+                            const scoreColor = score >= 75 ? '#28a745' : (score >= 50 ? '#ffc107' : '#dc3545');
+                            return `
+                                <tr style="background:${idx % 2 === 0 ? '#f8f9fa' : 'white'};">
+                                    <td style="padding:8px; border:1px solid #ddd;">${s.name || 'N/A'}</td>
+                                    <td style="padding:8px; border:1px solid #ddd;">${s.email || 'N/A'}</td>
+                                    <td style="padding:8px; border:1px solid #ddd;">${s.studentId || 'N/A'}</td>
+                                    <td style="padding:8px; border:1px solid #ddd;">${s.rollNumber || 'N/A'}</td>
+                                    <td style="padding:8px; border:1px solid #ddd;">${s.className || 'N/A'}</td>
+                                    <td style="padding:8px; text-align:center; border:1px solid #ddd;">
+                                        <span style="color: ${scoreColor}; font-weight: bold;">${s.averageScore || 0}%</span>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('') : '<tr><td colspan="6" style="text-align:center; padding:20px;">No students assigned</td></tr>'}
                     </tbody>
                 </table>
             </div>
@@ -2415,40 +2428,8 @@
     }
     
     try {
-        // Debug: Pehle check karo ki data sahi aa raha hai ya nahi
-        const debugResponse = await fetch(`${API_URL}/admin/debug-teacher-report/${teacherId}`, {
+        const response = await fetch(`${API_URL}/admin/teacher-report/${teacherId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const debugData = await debugResponse.json();
-        console.log('DEBUG - Teacher report data:', debugData);
-        
-        // Agar debug data sahi hai to use karo
-        if (debugData.success && debugData.students) {
-            const teacherData = {
-                name: debugData.teacher.name,
-                email: debugData.teacher.email,
-                assignedClass: debugData.teacher.assignedClass,
-                assignedSection: debugData.teacher.assignedSection,
-                subjects: [], // Subjects add karna hai to teacher object se lo
-                totalStudents: debugData.students.length,
-                overallAverageScore: debugData.students.length > 0 ? 
-                    (debugData.students.reduce((sum, s) => sum + parseFloat(s.averageScore), 0) / debugData.students.length).toFixed(2) : '0'
-            };
-            
-            currentReportHTML = createTeacherReportHTML(teacherData, debugData.students);
-            document.getElementById('previewContent').innerHTML = currentReportHTML;
-            document.getElementById('previewModal').style.display = 'flex';
-            return;
-        }
-        
-        // Fallback to original method
-        const response = await fetch(`${API_URL}/admin/generate-report`, {
-            method: 'POST', 
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify({ reportType: 'teacher', teacherId })
         });
         
         const data = await response.json();

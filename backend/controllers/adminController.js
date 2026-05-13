@@ -169,27 +169,36 @@ const getTeacherDetails = async (req, res) => {
 };
 
 // Get student details
+// Get student details - FIXED with correct average score calculation
 const getStudentDetails = async (req, res) => {
     try {
         const students = await User.find({ role: 'student' }).select('-password');
         
         const studentDetails = [];
         for (const student of students) {
+            // Fetch all scores for this student
             const scores = await Score.find({ studentId: student._id });
+            
             let avgScore = 0;
-            if (scores.length > 0) {
-                let totalPercent = 0;
+            if (scores && scores.length > 0) {
+                let totalPercentage = 0;
+                let validScoreCount = 0;
                 for (let i = 0; i < scores.length; i++) {
-                    if (scores[i].obtainedMarks && scores[i].maxMarks) {
-                        totalPercent += (scores[i].obtainedMarks / scores[i].maxMarks) * 100;
+                    if (scores[i].obtainedMarks && scores[i].maxMarks && scores[i].maxMarks > 0) {
+                        const percentage = (scores[i].obtainedMarks / scores[i].maxMarks) * 100;
+                        totalPercentage += percentage;
+                        validScoreCount++;
                     }
                 }
-                avgScore = totalPercent / scores.length;
+                if (validScoreCount > 0) {
+                    avgScore = totalPercentage / validScoreCount;
+                }
             }
             
+            // Calculate attendance percentage
             const attendance = await Attendance.find({ studentId: student._id });
             let attendancePercent = 0;
-            if (attendance.length > 0) {
+            if (attendance && attendance.length > 0) {
                 const presentCount = attendance.filter(a => a.status === 'present').length;
                 attendancePercent = (presentCount / attendance.length) * 100;
             }
@@ -198,14 +207,14 @@ const getStudentDetails = async (req, res) => {
                 _id: student._id,
                 name: student.name,
                 email: student.email,
-                studentId: student.studentId,
+                studentId: student.studentId || 'N/A',
                 className: student.className || 'Not Assigned',
                 section: student.section || 'Not Assigned',
                 rollNumber: student.rollNumber || 'Not Assigned',
                 averageScore: avgScore.toFixed(2),
                 attendancePercentage: attendancePercent.toFixed(2),
-                totalScores: scores.length,
-                totalAttendance: attendance.length
+                totalScores: scores ? scores.length : 0,
+                totalAttendance: attendance ? attendance.length : 0
             });
         }
         
@@ -221,7 +230,6 @@ const getStudentDetails = async (req, res) => {
         });
     }
 };
-
 // ============ GENERATE SYSTEM REPORT - FIXED ============
 const generateSystemReport = async (req, res) => {
     try {

@@ -2179,7 +2179,7 @@
 }     
 
    function createTeacherReportHTML(teacher, students) {
-    // Get subjects count properly from teacher object
+    // Subjects count from teacher object
     let subjectsList = [];
     if (teacher.subjects) {
         if (Array.isArray(teacher.subjects)) {
@@ -2241,8 +2241,8 @@
                     </tr></thead>
                     <tbody>
                         ${students && students.length > 0 ? students.map((s, idx) => {
-                            const score = parseFloat(s.averageScore) || 0;
-                            const scoreColor = score >= 75 ? '#28a745' : (score >= 50 ? '#ffc107' : '#dc3545');
+                            const studentScore = s.averageScore !== undefined ? parseFloat(s.averageScore) : 0;
+                            const scoreColor = studentScore >= 75 ? '#28a745' : (studentScore >= 50 ? '#ffc107' : '#dc3545');
                             return `
                                 <tr style="background:${idx % 2 === 0 ? '#f8f9fa' : 'white'};">
                                     <td style="padding:8px; border:1px solid #ddd;">${s.name || 'N/A'}</td>
@@ -2251,7 +2251,7 @@
                                     <td style="padding:8px; border:1px solid #ddd;">${s.rollNumber || 'N/A'}</td>
                                     <td style="padding:8px; border:1px solid #ddd;">${s.className || 'N/A'}</td>
                                     <td style="padding:8px; text-align:center; border:1px solid #ddd;">
-                                        <span style="color: ${scoreColor}; font-weight: bold;">${s.averageScore || 0}%</span>
+                                        <span style="color: ${scoreColor}; font-weight: bold;">${studentScore}%</span>
                                     </td>
                                 </tr>
                             `;
@@ -2428,6 +2428,7 @@
     }
     
     try {
+        // Direct teacher-report route use karo
         const response = await fetch(`${API_URL}/admin/teacher-report/${teacherId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });

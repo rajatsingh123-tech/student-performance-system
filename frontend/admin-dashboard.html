@@ -2473,7 +2473,7 @@
             }
         }
         
-      async function generateTeacherReport() {
+     async function generateTeacherReport() {
     const teacherId = document.getElementById('reportTeacherId').value;
     if (!teacherId) { 
         alert('Please select a teacher'); 
@@ -2484,28 +2484,19 @@
     document.getElementById('reportMessage').className = 'message';
     
     try {
-        const response = await fetch(`${API_URL}/admin/generate-report`, {
-            method: 'POST', 
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify({ reportType: 'teacher', teacherId })
+        // Same GET route use karo jo previewTeacherReport use kar raha hai
+        const response = await fetch(`${API_URL}/admin/teacher-report/${teacherId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         
         const data = await response.json();
+        console.log('Teacher report data for PDF:', data);
         
         if (data.success && data.report) {
             const teacherData = data.report.teacher || {};
-            if (!teacherData.overallAverageScore && data.report.students && data.report.students.length > 0) {
-                let total = 0;
-                for (let i = 0; i < data.report.students.length; i++) {
-                    total += parseFloat(data.report.students[i].averageScore || 0);
-                }
-                teacherData.overallAverageScore = (total / data.report.students.length).toFixed(2);
-            }
+            const students = data.report.students || [];
             
-            const reportHTML = createTeacherReportHTML(teacherData, data.report.students || []);
+            const reportHTML = createTeacherReportHTML(teacherData, students);
             await downloadPDFDirect(reportHTML, `teacher_report_${teacherData.name || 'teacher'}.pdf`);
             document.getElementById('reportMessage').innerHTML = 'PDF downloaded successfully!';
             document.getElementById('reportMessage').className = 'message success';

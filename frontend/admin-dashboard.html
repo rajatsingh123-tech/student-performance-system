@@ -2050,20 +2050,40 @@
         }
         
         // Report Functions
-       function createStudentReportHTML(student, scores, attendance) {
-    // Calculate average score
+    function createStudentReportHTML(student, scores, attendance) {
+    // Calculate average score properly
     let avgScore = 0;
+    let totalPercentage = 0;
+    
     if (scores && scores.length > 0) {
-        let totalMarks = 0;
         for (let i = 0; i < scores.length; i++) {
-            totalMarks += scores[i].obtainedMarks || scores[i].marks || 0;
+            let percentage = 0;
+            if (scores[i].obtainedMarks && scores[i].maxMarks) {
+                percentage = (scores[i].obtainedMarks / scores[i].maxMarks) * 100;
+            } else if (scores[i].percentage) {
+                percentage = parseFloat(scores[i].percentage);
+            } else if (scores[i].marks) {
+                percentage = parseFloat(scores[i].marks);
+            }
+            totalPercentage += percentage;
         }
-        avgScore = (totalMarks / scores.length).toFixed(2);
+        avgScore = (totalPercentage / scores.length).toFixed(2);
     }
     
     // Calculate attendance percentage
-    const presentCount = (attendance && attendance.length > 0) ? attendance.filter(a => a.status === 'present').length : 0;
-    const attendancePercent = (attendance && attendance.length > 0) ? ((presentCount / attendance.length) * 100).toFixed(2) : 0;
+    let attendancePercent = 0;
+    if (attendance && attendance.length > 0) {
+        const presentCount = attendance.filter(a => a.status === 'present').length;
+        attendancePercent = ((presentCount / attendance.length) * 100).toFixed(2);
+    }
+    
+    // Get student info
+    const studentName = student.name || student.studentName || 'N/A';
+    const studentEmail = student.email || 'N/A';
+    const studentId = student.studentId || 'N/A';
+    const rollNumber = student.rollNumber || 'N/A';
+    const className = student.className || student.class || 'N/A';
+    const section = student.section || 'N/A';
     
     return `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -2077,19 +2097,19 @@
             <div style="margin-bottom: 30px;">
                 <h2 style="background: #667eea; color: white; padding: 10px; border-radius: 5px;">Student Information</h2>
                 <table style="width: 100%; margin-top: 15px; border-collapse: collapse;">
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Name:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${student.name || 'N/A'}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Email:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${student.email || 'N/A'}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Student ID:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${student.studentId || 'N/A'}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Roll Number:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${student.rollNumber || 'N/A'}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Class:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${student.className || student.class || 'N/A'}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Section:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${student.section || 'N/A'}</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Name:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${studentName}</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Email:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${studentEmail}</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Student ID:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${studentId}</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Roll Number:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${rollNumber}</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Class:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${className}</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Section:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${section}</td></tr>
                 </table>
             </div>
             
             <!-- Summary Cards -->
             <div style="margin-bottom: 30px;">
                 <h2 style="background: #667eea; color: white; padding: 10px; border-radius: 5px;">Performance Summary</h2>
-                <div style="display: flex; gap: 20px; margin-top: 15px;">
+                <div style="display: flex; gap: 20px; margin-top: 15px; flex-wrap: wrap;">
                     <div style="flex: 1; background: #f0f4f8; padding: 15px; text-align: center; border-radius: 8px;">
                         <strong>Average Score</strong><br>
                         <span style="font-size: 28px; font-weight: bold; color: #667eea;">${avgScore}%</span>
@@ -2117,7 +2137,7 @@
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Exam Type</th>
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Date</th>
                             <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Grade</th>
-                        </td>
+                        </tr>
                     </thead>
                     <tbody>
                         ${(scores && scores.length > 0) ? scores.map((s, index) => {
@@ -2149,36 +2169,6 @@
                 </table>
             </div>
             
-            <!-- Attendance Table -->
-            <div style="margin-bottom: 30px;">
-                <h2 style="background: #667eea; color: white; padding: 10px; border-radius: 5px;">Attendance Record</h2>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-                    <thead>
-                        <tr style="background: #667eea; color: white;">
-                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Date</th>
-                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Subject</th>
-                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${(attendance && attendance.length > 0) ? attendance.map((a, index) => {
-                            const bgColor = index % 2 === 0 ? '#f8f9fa' : 'white';
-                            let statusText = a.status === 'present' ? '✅ Present' : (a.status === 'absent' ? '❌ Absent' : ' Late');
-                            let statusColor = a.status === 'present' ? '#28a745' : (a.status === 'absent' ? '#dc3545' : '#ffc107');
-                            return `
-                                <tr style="background: ${bgColor};">
-                                    <td style="padding: 8px; border: 1px solid #ddd;">${new Date(a.date).toLocaleDateString()}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd;">${a.subject || 'Full Day'}</td>
-                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;"><span style="color: ${statusColor}; font-weight: bold;">${statusText}</span></td>
-                                 </tr>
-                            `;
-                        }).join('') : `
-                            <tr><td colspan="3" style="padding: 20px; text-align: center;">No attendance records yet</td></tr>
-                        `}
-                    </tbody>
-                </table>
-            </div>
-            
             <!-- Footer -->
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
                 <p style="color: #999; font-size: 12px;">Generated on: ${new Date().toLocaleString()}</p>
@@ -2186,38 +2176,72 @@
             </div>
         </div>
     `;
-}
-       function createTeacherReportHTML(teacher, students) {
-    // Get subjects properly
+}     function createTeacherReportHTML(teacher, students) {
+    // Get subjects properly - check all possible locations
     let subjectsList = [];
-    if (teacher.subjects && Array.isArray(teacher.subjects)) {
-        subjectsList = teacher.subjects;
-    } else if (teacher.subjects && typeof teacher.subjects === 'string') {
-        subjectsList = teacher.subjects.split(',').map(s => s.trim());
+    
+    // Check if subjects exist in teacher object
+    if (teacher.subjects) {
+        if (Array.isArray(teacher.subjects)) {
+            subjectsList = teacher.subjects;
+        } else if (typeof teacher.subjects === 'string') {
+            subjectsList = teacher.subjects.split(',').map(s => s.trim());
+        }
     }
     
-    // Calculate total students and their average scores
+    // Also check if subjects are in teacher object as comma separated string
+    if (subjectsList.length === 0 && teacher.subjectsString) {
+        subjectsList = teacher.subjectsString.split(',').map(s => s.trim());
+    }
+    
+    // Calculate average score from students data
     let totalAvgScore = 0;
     let studentCount = 0;
+    let processedStudents = [];
     
-    // Process students data
-    const processedStudents = students.map(s => {
-        // Get student average score
-        let studentAvg = s.averageScore || 0;
-        if (studentAvg > 0) {
-            totalAvgScore += parseFloat(studentAvg);
-            studentCount++;
-        }
-        
-        return {
-            name: s.name || 'N/A',
-            email: s.email || 'N/A',
-            studentId: s.studentId || 'N/A',
-            rollNumber: s.rollNumber || 'N/A',
-            className: s.className || s.class || 'N/A',
-            averageScore: studentAvg
-        };
-    });
+    // Process each student
+    if (students && students.length > 0) {
+        processedStudents = students.map(s => {
+            // Get student average score - check multiple possible locations
+            let studentAvg = 0;
+            if (s.averageScore && !isNaN(parseFloat(s.averageScore))) {
+                studentAvg = parseFloat(s.averageScore);
+            } else if (s.avgScore && !isNaN(parseFloat(s.avgScore))) {
+                studentAvg = parseFloat(s.avgScore);
+            } else if (s.percentage && !isNaN(parseFloat(s.percentage))) {
+                studentAvg = parseFloat(s.percentage);
+            }
+            
+            if (studentAvg > 0) {
+                totalAvgScore += studentAvg;
+                studentCount++;
+            }
+            
+            // Also check if student has scores array
+            if (s.scores && s.scores.length > 0) {
+                let scoreSum = 0;
+                for (let i = 0; i < s.scores.length; i++) {
+                    if (s.scores[i].obtainedMarks && s.scores[i].maxMarks) {
+                        scoreSum += (s.scores[i].obtainedMarks / s.scores[i].maxMarks) * 100;
+                    }
+                }
+                if (scoreSum > 0) {
+                    studentAvg = (scoreSum / s.scores.length).toFixed(2);
+                    totalAvgScore += parseFloat(studentAvg);
+                    studentCount++;
+                }
+            }
+            
+            return {
+                name: s.name || 'N/A',
+                email: s.email || 'N/A',
+                studentId: s.studentId || 'N/A',
+                rollNumber: s.rollNumber || 'N/A',
+                className: s.className || s.class || s.assignedClass || 'N/A',
+                averageScore: studentAvg
+            };
+        });
+    }
     
     const overallAvgScore = studentCount > 0 ? (totalAvgScore / studentCount).toFixed(2) : '0.00';
     
@@ -2240,13 +2264,13 @@
                         <td style="padding: 8px; border: 1px solid #ddd;">${teacher.email || 'N/A'}</td>
                     </tr>
                     <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Assigned Class:</strong></td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">${teacher.assignedClass || teacher.className || 'N/A'}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${teacher.assignedClass || teacher.className || 'Not Assigned'}</td>
                     </tr>
                     <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Assigned Section:</strong></td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">${teacher.assignedSection || teacher.section || 'N/A'}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${teacher.assignedSection || teacher.section || 'Not Assigned'}</td>
                     </tr>
                     <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Total Students:</strong></td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">${students.length}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${students ? students.length : 0}</td>
                     </tr>
                     <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Subjects Teaching:</strong></td>
                         <td style="padding: 8px; border: 1px solid #ddd;">${subjectsList.length > 0 ? subjectsList.join(', ') : 'Not Assigned'}</td>
@@ -2257,16 +2281,16 @@
             <!-- Summary Stats -->
             <div style="margin-bottom: 30px;">
                 <h2 style="background: #667eea; color: white; padding: 10px; border-radius: 5px;">Summary</h2>
-                <div style="display: flex; gap: 20px; margin-top: 15px;">
-                    <div style="flex: 1; background: #f0f4f8; padding: 15px; text-align: center; border-radius: 8px;">
+                <div style="display: flex; gap: 20px; margin-top: 15px; flex-wrap: wrap;">
+                    <div style="flex: 1; background: #f0f4f8; padding: 15px; text-align: center; border-radius: 8px; min-width: 150px;">
                         <strong>Total Students</strong><br>
-                        <span style="font-size: 28px; font-weight: bold; color: #667eea;">${students.length}</span>
+                        <span style="font-size: 28px; font-weight: bold; color: #667eea;">${students ? students.length : 0}</span>
                     </div>
-                    <div style="flex: 1; background: #f0f4f8; padding: 15px; text-align: center; border-radius: 8px;">
+                    <div style="flex: 1; background: #f0f4f8; padding: 15px; text-align: center; border-radius: 8px; min-width: 150px;">
                         <strong>Subjects</strong><br>
                         <span style="font-size: 28px; font-weight: bold; color: #28a745;">${subjectsList.length}</span>
                     </div>
-                    <div style="flex: 1; background: #f0f4f8; padding: 15px; text-align: center; border-radius: 8px;">
+                    <div style="flex: 1; background: #f0f4f8; padding: 15px; text-align: center; border-radius: 8px; min-width: 150px;">
                         <strong>Average Score</strong><br>
                         <span style="font-size: 28px; font-weight: bold; color: #ffc107;">${overallAvgScore}%</span>
                     </div>
@@ -2306,12 +2330,13 @@
                         }).join('')}
                     </tbody>
                 </table>
+                ${(!processedStudents || processedStudents.length === 0) ? '<p style="text-align:center; padding:20px;">No students assigned to this teacher</p>' : ''}
             </div>
             
             <!-- Footer -->
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
                 <p style="color: #999; font-size: 12px;">Generated on: ${new Date().toLocaleString()}</p>
-                <p style="color: #667eea; font-size: 12px;">Student Performance System</p>
+                <p style="color: #667eea; font-size: 12px;">Student Performance System - Admin Portal</p>
             </div>
         </div>
     `;

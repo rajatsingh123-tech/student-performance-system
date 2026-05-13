@@ -222,7 +222,7 @@ const getStudentDetails = async (req, res) => {
     }
 };
 
-// ============ GENERATE SYSTEM REPORT - FIXED FOR TEACHER REPORT ============
+// ============ GENERATE SYSTEM REPORT - FIXED ============
 const generateSystemReport = async (req, res) => {
     try {
         const { reportType, studentId, teacherId } = req.body;
@@ -237,7 +237,6 @@ const generateSystemReport = async (req, res) => {
             const scores = await Score.find({ studentId: student._id }).sort({ date: -1 });
             const attendance = await Attendance.find({ studentId: student._id }).sort({ date: -1 });
             
-            // Process scores with percentages
             const processedScores = scores.map(score => {
                 let percentage = 0;
                 if (score.obtainedMarks && score.maxMarks && score.maxMarks > 0) {
@@ -270,7 +269,7 @@ const generateSystemReport = async (req, res) => {
             });
         }
         
-        // ============ TEACHER REPORT - COMPLETELY FIXED ============
+        // ============ TEACHER REPORT - FIXED (students ke averageScore properly set) ============
         if (reportType === 'teacher' && teacherId) {
             const teacher = await User.findById(teacherId).select('-password');
             if (!teacher) {
@@ -287,21 +286,44 @@ const generateSystemReport = async (req, res) => {
                 students = await User.find(query).select('name email studentId rollNumber className section');
             }
             
-            // Calculate average scores for each student
+            // Calculate average scores for each student and create new array with averageScore
+            const studentsWithScores = [];
+            let totalAverageSum = 0;
+            
             for (let i = 0; i < students.length; i++) {
-                const studentScores = await Score.find({ studentId: students[i]._id });
-                if (studentScores.length > 0) {
+                const student = students[i];
+                const studentScores = await Score.find({ studentId: student._id });
+                
+                let avgScore = 0;
+                if (studentScores && studentScores.length > 0) {
                     let totalPercentage = 0;
+                    let validScoreCount = 0;
                     for (let j = 0; j < studentScores.length; j++) {
-                        if (studentScores[j].obtainedMarks && studentScores[j].maxMarks) {
+                        if (studentScores[j].obtainedMarks && studentScores[j].maxMarks && studentScores[j].maxMarks > 0) {
                             totalPercentage += (studentScores[j].obtainedMarks / studentScores[j].maxMarks) * 100;
+                            validScoreCount++;
                         }
                     }
-                    students[i].averageScore = (totalPercentage / studentScores.length).toFixed(2);
-                } else {
-                    students[i].averageScore = '0';
+                    if (validScoreCount > 0) {
+                        avgScore = (totalPercentage / validScoreCount).toFixed(2);
+                    }
                 }
+                
+                studentsWithScores.push({
+                    name: student.name,
+                    email: student.email,
+                    studentId: student.studentId || 'N/A',
+                    rollNumber: student.rollNumber || 'N/A',
+                    className: student.className || 'N/A',
+                    section: student.section || 'N/A',
+                    averageScore: avgScore
+                });
+                
+                totalAverageSum += parseFloat(avgScore);
             }
+            
+            // Calculate overall average score
+            const overallAvg = studentsWithScores.length > 0 ? (totalAverageSum / studentsWithScores.length).toFixed(2) : '0';
             
             // Get teacher's subjects
             let teacherSubjects = [];
@@ -315,16 +337,6 @@ const generateSystemReport = async (req, res) => {
                 }
             }
             
-            // Calculate overall average score
-            let overallAvg = 0;
-            if (students.length > 0) {
-                let total = 0;
-                for (let i = 0; i < students.length; i++) {
-                    total += parseFloat(students[i].averageScore);
-                }
-                overallAvg = (total / students.length).toFixed(2);
-            }
-            
             return res.json({
                 success: true,
                 report: {
@@ -334,10 +346,10 @@ const generateSystemReport = async (req, res) => {
                         assignedClass: teacher.assignedClass || 'Not Assigned',
                         assignedSection: teacher.assignedSection || 'Not Assigned',
                         subjects: teacherSubjects,
-                        totalStudents: students.length,
+                        totalStudents: studentsWithScores.length,
                         overallAverageScore: overallAvg
                     },
-                    students: students
+                    students: studentsWithScores
                 }
             });
         }
@@ -359,7 +371,7 @@ const generateSystemReport = async (req, res) => {
                 if (scores.length > 0) {
                     let studentTotal = 0;
                     for (let j = 0; j < scores.length; j++) {
-                        if (scores[j].obtainedMarks && scores[j].maxMarks) {
+                        if (scores[j].obtainedMarks && scores[j].maxMarks && scores[j].maxMarks > 0) {
                             studentTotal += (scores[j].obtainedMarks / scores[j].maxMarks) * 100;
                         }
                     }

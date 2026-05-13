@@ -1062,7 +1062,7 @@
     </div>
     
     <script>
-        const API_URL = 'http://localhost:5000/api';
+        const API_URL = 'https://student-performance-system-44as.onrender.com/api';
         const token = localStorage.getItem('token');
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         
@@ -1070,7 +1070,6 @@
             alert('Access denied! Please login as admin.');
             window.location.href = 'login.html';
         }
-        
         document.getElementById('adminName').textContent = `Welcome, ${user.name}`;
         
         let currentReportHTML = '';

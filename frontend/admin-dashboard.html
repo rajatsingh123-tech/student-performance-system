@@ -2407,20 +2407,49 @@
             }
         }
         
-        async function previewTeacherReport() {
-            const teacherId = document.getElementById('reportTeacherId').value;
-            if (!teacherId) { alert('Select a teacher'); return; }
-            const response = await fetch(`${API_URL}/admin/generate-report`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ reportType: 'teacher', teacherId })
-            });
-            const data = await response.json();
-            if (data.success) {
-                currentReportHTML = createTeacherReportHTML(data.report.teacher, data.report.students);
-                document.getElementById('previewContent').innerHTML = currentReportHTML;
-                document.getElementById('previewModal').style.display = 'flex';
+      async function previewTeacherReport() {
+    const teacherId = document.getElementById('reportTeacherId').value;
+    if (!teacherId) { 
+        alert('Please select a teacher'); 
+        return; 
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/admin/generate-report`, {
+            method: 'POST', 
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ reportType: 'teacher', teacherId })
+        });
+        
+        const data = await response.json();
+        console.log('Teacher report data:', data);
+        
+        if (data.success && data.report) {
+            // Make sure teacher object has overallAverageScore
+            const teacherData = data.report.teacher || {};
+            if (!teacherData.overallAverageScore && data.report.students && data.report.students.length > 0) {
+                // Calculate average if not provided
+                let total = 0;
+                for (let i = 0; i < data.report.students.length; i++) {
+                    total += parseFloat(data.report.students[i].averageScore || 0);
+                }
+                teacherData.overallAverageScore = (total / data.report.students.length).toFixed(2);
             }
+            
+            currentReportHTML = createTeacherReportHTML(teacherData, data.report.students || []);
+            document.getElementById('previewContent').innerHTML = currentReportHTML;
+            document.getElementById('previewModal').style.display = 'flex';
+        } else {
+            alert('Error: ' + (data.message || 'Failed to generate report'));
         }
+    } catch (error) {
+        console.error('Error generating teacher report:', error);
+        alert('Error generating teacher report: ' + error.message);
+    }
+}
         
         async function previewSystemReport() {
             currentReportHTML = await createSystemReportHTML();
@@ -2443,20 +2472,53 @@
             }
         }
         
-        async function generateTeacherReport() {
-            const teacherId = document.getElementById('reportTeacherId').value;
-            if (!teacherId) { alert('Select a teacher'); return; }
-            const response = await fetch(`${API_URL}/admin/generate-report`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ reportType: 'teacher', teacherId })
-            });
-            const data = await response.json();
-            if (data.success) {
-                const reportHTML = createTeacherReportHTML(data.report.teacher, data.report.students);
-                await downloadPDFDirect(reportHTML, `teacher_report_${data.report.teacher.name}.pdf`);
-                showToast('PDF generated!', 'success');
+      async function generateTeacherReport() {
+    const teacherId = document.getElementById('reportTeacherId').value;
+    if (!teacherId) { 
+        alert('Please select a teacher'); 
+        return; 
+    }
+    
+    document.getElementById('reportMessage').innerHTML = 'Generating PDF...';
+    document.getElementById('reportMessage').className = 'message';
+    
+    try {
+        const response = await fetch(`${API_URL}/admin/generate-report`, {
+            method: 'POST', 
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ reportType: 'teacher', teacherId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.report) {
+            const teacherData = data.report.teacher || {};
+            if (!teacherData.overallAverageScore && data.report.students && data.report.students.length > 0) {
+                let total = 0;
+                for (let i = 0; i < data.report.students.length; i++) {
+                    total += parseFloat(data.report.students[i].averageScore || 0);
+                }
+                teacherData.overallAverageScore = (total / data.report.students.length).toFixed(2);
             }
+            
+            const reportHTML = createTeacherReportHTML(teacherData, data.report.students || []);
+            await downloadPDFDirect(reportHTML, `teacher_report_${teacherData.name || 'teacher'}.pdf`);
+            document.getElementById('reportMessage').innerHTML = 'PDF downloaded successfully!';
+            document.getElementById('reportMessage').className = 'message success';
+            setTimeout(() => { document.getElementById('reportMessage').style.display = 'none'; }, 3000);
+        } else {
+            document.getElementById('reportMessage').innerHTML = 'Error: ' + (data.message || 'Failed to generate report');
+            document.getElementById('reportMessage').className = 'message error';
         }
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('reportMessage').innerHTML = 'Error generating PDF: ' + error.message;
+        document.getElementById('reportMessage').className = 'message error';
+    }
+}
         
         async function generateSystemReport() {
             const reportHTML = await createSystemReportHTML();

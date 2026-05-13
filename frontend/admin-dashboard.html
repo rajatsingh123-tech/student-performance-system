@@ -2415,6 +2415,33 @@
     }
     
     try {
+        // Debug: Pehle check karo ki data sahi aa raha hai ya nahi
+        const debugResponse = await fetch(`${API_URL}/admin/debug-teacher-report/${teacherId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const debugData = await debugResponse.json();
+        console.log('DEBUG - Teacher report data:', debugData);
+        
+        // Agar debug data sahi hai to use karo
+        if (debugData.success && debugData.students) {
+            const teacherData = {
+                name: debugData.teacher.name,
+                email: debugData.teacher.email,
+                assignedClass: debugData.teacher.assignedClass,
+                assignedSection: debugData.teacher.assignedSection,
+                subjects: [], // Subjects add karna hai to teacher object se lo
+                totalStudents: debugData.students.length,
+                overallAverageScore: debugData.students.length > 0 ? 
+                    (debugData.students.reduce((sum, s) => sum + parseFloat(s.averageScore), 0) / debugData.students.length).toFixed(2) : '0'
+            };
+            
+            currentReportHTML = createTeacherReportHTML(teacherData, debugData.students);
+            document.getElementById('previewContent').innerHTML = currentReportHTML;
+            document.getElementById('previewModal').style.display = 'flex';
+            return;
+        }
+        
+        // Fallback to original method
         const response = await fetch(`${API_URL}/admin/generate-report`, {
             method: 'POST', 
             headers: { 
@@ -2428,25 +2455,17 @@
         console.log('Teacher report data:', data);
         
         if (data.success && data.report) {
-            // Make sure teacher object has overallAverageScore
             const teacherData = data.report.teacher || {};
-            if (!teacherData.overallAverageScore && data.report.students && data.report.students.length > 0) {
-                // Calculate average if not provided
-                let total = 0;
-                for (let i = 0; i < data.report.students.length; i++) {
-                    total += parseFloat(data.report.students[i].averageScore || 0);
-                }
-                teacherData.overallAverageScore = (total / data.report.students.length).toFixed(2);
-            }
+            const students = data.report.students || [];
             
-            currentReportHTML = createTeacherReportHTML(teacherData, data.report.students || []);
+            currentReportHTML = createTeacherReportHTML(teacherData, students);
             document.getElementById('previewContent').innerHTML = currentReportHTML;
             document.getElementById('previewModal').style.display = 'flex';
         } else {
             alert('Error: ' + (data.message || 'Failed to generate report'));
         }
     } catch (error) {
-        console.error('Error generating teacher report:', error);
+        console.error('Error:', error);
         alert('Error generating teacher report: ' + error.message);
     }
 }

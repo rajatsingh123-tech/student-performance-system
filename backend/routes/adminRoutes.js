@@ -71,7 +71,7 @@ router.post('/timetable', async (req, res) => {
     }
 });
 
-// ============ TEACHER REPORT - WORKING ============
+// ============ TEACHER REPORT - FIXED WITH overallAverageScore ============
 router.get('/teacher-report/:teacherId', async (req, res) => {
     try {
         const teacherId = req.params.teacherId;
@@ -90,12 +90,14 @@ router.get('/teacher-report/:teacherId', async (req, res) => {
             }).select('name email studentId rollNumber className section');
         }
         
+        let totalAverageSum = 0;
+        
         for (let i = 0; i < students.length; i++) {
             const studentScores = await Score.find({ studentId: students[i]._id });
             let totalScore = 0;
             if (studentScores.length > 0) {
                 for (let j = 0; j < studentScores.length; j++) {
-                    if (studentScores[j].obtainedMarks && studentScores[j].maxMarks) {
+                    if (studentScores[j].obtainedMarks && studentScores[j].maxMarks && studentScores[j].maxMarks > 0) {
                         totalScore += (studentScores[j].obtainedMarks / studentScores[j].maxMarks) * 100;
                     }
                 }
@@ -103,14 +105,20 @@ router.get('/teacher-report/:teacherId', async (req, res) => {
             } else {
                 students[i].averageScore = '0';
             }
+            totalAverageSum += parseFloat(students[i].averageScore);
         }
+        
+        // Calculate overall average score
+        const overallAverageScore = students.length > 0 ? (totalAverageSum / students.length).toFixed(2) : '0';
         
         let teacherSubjects = [];
         if (teacher.subjects) {
             if (Array.isArray(teacher.subjects)) {
                 teacherSubjects = teacher.subjects;
+            } else if (typeof teacher.subjects === 'string') {
+                teacherSubjects = teacher.subjects.split(',').map(s => s.trim());
             } else {
-                teacherSubjects = [teacher.subjects];
+                teacherSubjects = [String(teacher.subjects)];
             }
         }
         
@@ -123,13 +131,81 @@ router.get('/teacher-report/:teacherId', async (req, res) => {
                     assignedClass: teacher.assignedClass || 'Not Assigned',
                     assignedSection: teacher.assignedSection || 'Not Assigned',
                     subjects: teacherSubjects,
-                    totalStudents: students.length
+                    totalStudents: students.length,
+                    overallAverageScore: overallAverageScore
                 },
                 students: students
             }
         });
     } catch (error) {
         console.error('Teacher report error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ============ DEBUG TEACHER REPORT ROUTE ============
+router.get('/debug-teacher-report/:teacherId', async (req, res) => {
+    try {
+        const teacherId = req.params.teacherId;
+        const teacher = await User.findById(teacherId).select('-password');
+        if (!teacher) {
+            return res.status(404).json({ success: false, message: 'Teacher not found' });
+        }
+        
+        let students = [];
+        if (teacher.assignedClass) {
+            const query = { role: 'student', className: teacher.assignedClass };
+            if (teacher.assignedSection && teacher.assignedSection !== '') {
+                query.section = teacher.assignedSection;
+            }
+            students = await User.find(query).select('name email studentId rollNumber className section');
+        }
+        
+        const studentsWithScores = [];
+        for (let i = 0; i < students.length; i++) {
+            const studentScores = await Score.find({ studentId: students[i]._id });
+            let avgScore = 0;
+            if (studentScores.length > 0) {
+                let total = 0;
+                for (let j = 0; j < studentScores.length; j++) {
+                    if (studentScores[j].obtainedMarks && studentScores[j].maxMarks && studentScores[j].maxMarks > 0) {
+                        total += (studentScores[j].obtainedMarks / studentScores[j].maxMarks) * 100;
+                    }
+                }
+                avgScore = (total / studentScores.length).toFixed(2);
+            }
+            studentsWithScores.push({
+                name: students[i].name,
+                email: students[i].email,
+                studentId: students[i].studentId,
+                rollNumber: students[i].rollNumber,
+                className: students[i].className,
+                section: students[i].section,
+                averageScore: avgScore
+            });
+        }
+        
+        // Calculate overall average
+        let totalAvg = 0;
+        for (let i = 0; i < studentsWithScores.length; i++) {
+            totalAvg += parseFloat(studentsWithScores[i].averageScore);
+        }
+        const overallAvg = studentsWithScores.length > 0 ? (totalAvg / studentsWithScores.length).toFixed(2) : '0';
+        
+        res.json({
+            success: true,
+            teacher: {
+                id: teacher._id,
+                name: teacher.name,
+                email: teacher.email,
+                assignedClass: teacher.assignedClass,
+                assignedSection: teacher.assignedSection,
+                overallAverageScore: overallAvg
+            },
+            students: studentsWithScores
+        });
+    } catch (error) {
+        console.error('Debug error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -145,7 +221,7 @@ router.get('/student-report/:studentId', async (req, res) => {
         
         const processedScores = scores.map(score => {
             let percentage = 0;
-            if (score.obtainedMarks && score.maxMarks) {
+            if (score.obtainedMarks && score.maxMarks && score.maxMarks > 0) {
                 percentage = (score.obtainedMarks / score.maxMarks) * 100;
             }
             return {

@@ -2187,9 +2187,39 @@
         </div>
     `;
 }
-        function createTeacherReportHTML(teacher, students) {
-    // Calculate teacher's subjects
-    const subjects = teacher.subjects || [];
+       function createTeacherReportHTML(teacher, students) {
+    // Get subjects properly
+    let subjectsList = [];
+    if (teacher.subjects && Array.isArray(teacher.subjects)) {
+        subjectsList = teacher.subjects;
+    } else if (teacher.subjects && typeof teacher.subjects === 'string') {
+        subjectsList = teacher.subjects.split(',').map(s => s.trim());
+    }
+    
+    // Calculate total students and their average scores
+    let totalAvgScore = 0;
+    let studentCount = 0;
+    
+    // Process students data
+    const processedStudents = students.map(s => {
+        // Get student average score
+        let studentAvg = s.averageScore || 0;
+        if (studentAvg > 0) {
+            totalAvgScore += parseFloat(studentAvg);
+            studentCount++;
+        }
+        
+        return {
+            name: s.name || 'N/A',
+            email: s.email || 'N/A',
+            studentId: s.studentId || 'N/A',
+            rollNumber: s.rollNumber || 'N/A',
+            className: s.className || s.class || 'N/A',
+            averageScore: studentAvg
+        };
+    });
+    
+    const overallAvgScore = studentCount > 0 ? (totalAvgScore / studentCount).toFixed(2) : '0.00';
     
     return `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -2203,12 +2233,24 @@
             <div style="margin-bottom: 30px;">
                 <h2 style="background: #667eea; color: white; padding: 10px; border-radius: 5px;">Teacher Information</h2>
                 <table style="width: 100%; margin-top: 15px; border-collapse: collapse;">
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Name:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${teacher.name || 'N/A'}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Email:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${teacher.email || 'N/A'}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Assigned Class:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${teacher.assignedClass || teacher.className || 'N/A'}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Assigned Section:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${teacher.assignedSection || teacher.section || 'N/A'}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Total Students:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${students.length}</td></tr>
-                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Subjects Teaching:</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${subjects.length > 0 ? subjects.join(', ') : 'Not Assigned'}</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Name:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${teacher.name || 'N/A'}</td>
+                    </tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Email:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${teacher.email || 'N/A'}</td>
+                    </tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Assigned Class:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${teacher.assignedClass || teacher.className || 'N/A'}</td>
+                    </tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Assigned Section:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${teacher.assignedSection || teacher.section || 'N/A'}</td>
+                    </tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Total Students:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${students.length}</td>
+                    </tr>
+                    <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Subjects Teaching:</strong></td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${subjectsList.length > 0 ? subjectsList.join(', ') : 'Not Assigned'}</td>
+                    </tr>
                 </table>
             </div>
             
@@ -2222,7 +2264,11 @@
                     </div>
                     <div style="flex: 1; background: #f0f4f8; padding: 15px; text-align: center; border-radius: 8px;">
                         <strong>Subjects</strong><br>
-                        <span style="font-size: 28px; font-weight: bold; color: #28a745;">${subjects.length}</span>
+                        <span style="font-size: 28px; font-weight: bold; color: #28a745;">${subjectsList.length}</span>
+                    </div>
+                    <div style="flex: 1; background: #f0f4f8; padding: 15px; text-align: center; border-radius: 8px;">
+                        <strong>Average Score</strong><br>
+                        <span style="font-size: 28px; font-weight: bold; color: #ffc107;">${overallAvgScore}%</span>
                     </div>
                 </div>
             </div>
@@ -2242,17 +2288,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${students.map((s, index) => {
+                        ${processedStudents.map((s, index) => {
                             const bgColor = index % 2 === 0 ? '#f8f9fa' : 'white';
+                            const scoreColor = s.averageScore >= 75 ? '#28a745' : (s.averageScore >= 50 ? '#ffc107' : '#dc3545');
                             return `
                                 <tr style="background: ${bgColor};">
-                                    <td style="padding: 8px; border: 1px solid #ddd;">${s.name || 'N/A'}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd;">${s.email || 'N/A'}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd;">${s.studentId || 'N/A'}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd;">${s.rollNumber || 'N/A'}</td>
-                                    <td style="padding: 8px; border: 1px solid #ddd;">${s.className || s.class || 'N/A'}</td>
-                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${s.averageScore || 0}%</td>
-                                 </tr>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${s.name}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${s.email}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${s.studentId}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${s.rollNumber}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${s.className}</td>
+                                    <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">
+                                        <span style="color: ${scoreColor}; font-weight: bold;">${s.averageScore}%</span>
+                                    </td>
+                                </tr>
                             `;
                         }).join('')}
                     </tbody>
@@ -2267,7 +2316,7 @@
         </div>
     `;
 }
-        
+     
         async function createSystemReportHTML() {
     try {
         // Fetch students data

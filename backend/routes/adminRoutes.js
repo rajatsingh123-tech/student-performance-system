@@ -4,7 +4,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Score = require('../models/Score');
 const Attendance = require('../models/Attendance');
-const Timetable = require('../models/Timetable');  // ← YEH LINE ADD KI
+const Timetable = require('../models/Timetable');
 
 const adminController = require('../controllers/adminController');
 
@@ -61,7 +61,7 @@ router.put('/teacher-schedule/:teacherId', async (req, res) => {
     }
 });
 
-// ============ TIMETABLE ROUTES (FIXED) ============
+// ============ TIMETABLE ROUTES ============
 router.get('/timetable/:className', async (req, res) => {
     try {
         const className = decodeURIComponent(req.params.className);
@@ -82,16 +82,13 @@ router.post('/timetable', async (req, res) => {
     try {
         const { className, day, periods } = req.body;
         
-        // Check if timetable for this class and day already exists
         let timetable = await Timetable.findOne({ className: className, day: day });
         
         if (timetable) {
-            // Update existing
             timetable.periods = periods;
             timetable.createdAt = Date.now();
             await timetable.save();
         } else {
-            // Create new
             timetable = new Timetable({
                 className: className,
                 day: day,
@@ -108,130 +105,182 @@ router.post('/timetable', async (req, res) => {
     }
 });
 
-// ============ TEACHER REPORT WITH SUBJECTS AND SCORES ============
+// ============ TEACHER REPORT - COMPLETELY REWRITTEN ============
 router.get('/teacher-report/:teacherId', async (req, res) => {
     try {
-        const teacher = await User.findById(req.params.teacherId).select('-password');
+        const teacherId = req.params.teacherId;
+        
+        // Get teacher details
+        const teacher = await User.findById(teacherId).select('-password');
         if (!teacher) {
             return res.status(404).json({ success: false, message: 'Teacher not found' });
         }
         
+        // Get students assigned to this teacher's class and section
         let students = [];
         if (teacher.assignedClass) {
-            students = await User.find({ 
+            const query = { 
                 role: 'student', 
-                className: teacher.assignedClass,
-                section: teacher.assignedSection || { $exists: true }
-            }).select('name email studentId rollNumber className section');
+                className: teacher.assignedClass
+            };
+            if (teacher.assignedSection && teacher.assignedSection !== '') {
+                query.section = teacher.assignedSection;
+            }
+            students = await User.find(query).select('name email studentId rollNumber className section');
         }
         
+        // Calculate average score for each student from scores
         for (let i = 0; i < students.length; i++) {
             const studentScores = await Score.find({ studentId: students[i]._id });
-            if (studentScores && studentScores.length > 0) {
-                let totalPercentage = 0;
-                let scoreCount = 0;
+            let totalScore = 0;
+            if (studentScores.length > 0) {
                 for (let j = 0; j < studentScores.length; j++) {
                     if (studentScores[j].obtainedMarks && studentScores[j].maxMarks) {
-                        totalPercentage += (studentScores[j].obtainedMarks / studentScores[j].maxMarks) * 100;
-                        scoreCount++;
+                        const percentage = (studentScores[j].obtainedMarks / studentScores[j].maxMarks) * 100;
+                        totalScore += percentage;
                     }
                 }
-                students[i].averageScore = scoreCount > 0 ? (totalPercentage / scoreCount).toFixed(2) : 0;
+                students[i].averageScore = (totalScore / studentScores.length).toFixed(2);
+                students[i].totalExams = studentScores.length;
             } else {
-                students[i].averageScore = 0;
+                students[i].averageScore = '0';
+                students[i].totalExams = 0;
             }
         }
         
-        let subjectsList = [];
+        // Get teacher's subjects
+        let teacherSubjects = [];
         if (teacher.subjects) {
             if (Array.isArray(teacher.subjects)) {
-                subjectsList = teacher.subjects;
+                teacherSubjects = teacher.subjects;
             } else if (typeof teacher.subjects === 'string') {
-                subjectsList = teacher.subjects.split(',').map(s => s.trim());
+                teacherSubjects = teacher.subjects.split(',').map(s => s.trim());
             }
         }
         
-        const teacherData = {
-            _id: teacher._id,
-            name: teacher.name,
-            email: teacher.email,
-            assignedClass: teacher.assignedClass,
-            assignedSection: teacher.assignedSection,
-            subjects: subjectsList,
-            totalStudents: students.length
+        // Calculate overall average score of all students
+        let overallAvg = 0;
+        if (students.length > 0) {
+            let totalAvg = 0;
+            for (let i = 0; i < students.length; i++) {
+                totalAvg += parseFloat(students[i].averageScore);
+            }
+            overallAvg = (totalAvg / students.length).toFixed(2);
+        }
+        
+        const reportData = {
+            teacher: {
+                id: teacher._id,
+                name: teacher.name,
+                email: teacher.email,
+                assignedClass: teacher.assignedClass || 'Not Assigned',
+                assignedSection: teacher.assignedSection || 'Not Assigned',
+                subjects: teacherSubjects,
+                totalStudents: students.length,
+                overallAverageScore: overallAvg
+            },
+            students: students.map(s => ({
+                name: s.name || 'N/A',
+                email: s.email || 'N/A',
+                studentId: s.studentId || 'N/A',
+                rollNumber: s.rollNumber || 'N/A',
+                className: s.className || 'N/A',
+                section: s.section || 'N/A',
+                averageScore: s.averageScore
+            }))
         };
         
-        res.json({ 
-            success: true, 
-            report: {
-                teacher: teacherData,
-                students: students
-            } 
-        });
+        res.json({ success: true, report: reportData });
+        
     } catch (error) {
-        console.error('Error generating teacher report:', error);
+        console.error('Teacher report error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// ============ STUDENT REPORT WITH CORRECT SCORES ============
+// ============ STUDENT REPORT - COMPLETELY REWRITTEN ============
 router.get('/student-report/:studentId', async (req, res) => {
     try {
-        const student = await User.findById(req.params.studentId).select('-password');
+        const studentId = req.params.studentId;
+        
+        const student = await User.findById(studentId).select('-password');
         if (!student) {
             return res.status(404).json({ success: false, message: 'Student not found' });
         }
         
+        // Get all scores
         const scores = await Score.find({ studentId: student._id }).sort({ date: -1 });
         
+        // Process scores with percentages
         const processedScores = scores.map(score => {
             let percentage = 0;
-            if (score.obtainedMarks && score.maxMarks) {
+            if (score.obtainedMarks && score.maxMarks && score.maxMarks > 0) {
                 percentage = (score.obtainedMarks / score.maxMarks) * 100;
             }
+            let grade = 'F';
+            if (percentage >= 90) grade = 'A+';
+            else if (percentage >= 80) grade = 'A';
+            else if (percentage >= 70) grade = 'B+';
+            else if (percentage >= 60) grade = 'B';
+            else if (percentage >= 50) grade = 'C';
+            
             return {
-                subject: score.subject,
-                obtainedMarks: score.obtainedMarks,
-                maxMarks: score.maxMarks,
+                subject: score.subject || 'N/A',
+                obtainedMarks: score.obtainedMarks || 0,
+                maxMarks: score.maxMarks || 100,
                 percentage: percentage.toFixed(2),
-                examType: score.examType,
+                examType: score.examType || 'Weekly Test',
                 date: score.date,
-                grade: percentage >= 90 ? 'A+' : percentage >= 80 ? 'A' : percentage >= 70 ? 'B+' : percentage >= 60 ? 'B' : percentage >= 50 ? 'C' : 'F'
+                grade: grade
             };
         });
         
-        const attendance = await Attendance.find({ studentId: student._id }).sort({ date: -1 });
-        
+        // Calculate average score
         let avgScore = 0;
         if (processedScores.length > 0) {
-            let totalPercent = 0;
+            let total = 0;
             for (let i = 0; i < processedScores.length; i++) {
-                totalPercent += parseFloat(processedScores[i].percentage);
+                total += parseFloat(processedScores[i].percentage);
             }
-            avgScore = (totalPercent / processedScores.length).toFixed(2);
+            avgScore = (total / processedScores.length).toFixed(2);
         }
         
-        const studentData = {
-            _id: student._id,
-            name: student.name,
-            email: student.email,
-            studentId: student.studentId,
-            rollNumber: student.rollNumber,
-            className: student.className,
-            section: student.section,
-            averageScore: avgScore
+        // Get attendance
+        const attendance = await Attendance.find({ studentId: student._id }).sort({ date: -1 });
+        
+        // Calculate attendance percentage
+        let attendancePercent = 0;
+        if (attendance.length > 0) {
+            const presentCount = attendance.filter(a => a.status === 'present').length;
+            attendancePercent = ((presentCount / attendance.length) * 100).toFixed(2);
+        }
+        
+        const reportData = {
+            student: {
+                id: student._id,
+                name: student.name,
+                email: student.email,
+                studentId: student.studentId || 'N/A',
+                rollNumber: student.rollNumber || 'N/A',
+                className: student.className || 'N/A',
+                section: student.section || 'N/A',
+                averageScore: avgScore,
+                attendancePercentage: attendancePercent,
+                totalExams: processedScores.length
+            },
+            scores: processedScores,
+            attendance: attendance.map(a => ({
+                date: a.date,
+                subject: a.subject || 'Full Day',
+                status: a.status,
+                remarks: a.status === 'present' ? 'Present' : (a.status === 'absent' ? 'Absent' : 'Late')
+            }))
         };
         
-        res.json({ 
-            success: true, 
-            report: {
-                student: studentData,
-                scores: processedScores,
-                attendance: attendance
-            } 
-        });
+        res.json({ success: true, report: reportData });
+        
     } catch (error) {
-        console.error('Error generating student report:', error);
+        console.error('Student report error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });

@@ -2420,37 +2420,42 @@
             }
         }
         
-      async function previewTeacherReport() {
-    const teacherId = document.getElementById('reportTeacherId').value;
-    if (!teacherId) { 
-        alert('Please select a teacher'); 
-        return; 
-    }
-    
-    try {
-        // Direct teacher-report route use karo
-        const response = await fetch(`${API_URL}/admin/teacher-report/${teacherId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const data = await response.json();
-        console.log('Teacher report data:', data);
-        
-        if (data.success && data.report) {
-            const teacherData = data.report.teacher || {};
-            const students = data.report.students || [];
-            
-            currentReportHTML = createTeacherReportHTML(teacherData, students);
-            document.getElementById('previewContent').innerHTML = currentReportHTML;
-            document.getElementById('previewModal').style.display = 'flex';
-        } else {
-            alert('Error: ' + (data.message || 'Failed to generate report'));
+     async function previewTeacherReport() {
+            const teacherId = document.getElementById('reportTeacherId').value;
+            if (!teacherId) { 
+                alert('Please select a teacher'); 
+                return; 
+            }
+
+            try {
+                // FIX: Changed to use the correct POST route where backend logic exists
+                const response = await fetch(`${API_URL}/admin/generate-report`, {
+                    method: 'POST', 
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ reportType: 'teacher', teacherId: teacherId })
+                });
+                
+                const data = await response.json();
+                console.log('Teacher report data:', data);
+                
+                if (data.success && data.report) {
+                    const teacherData = data.report.teacher || {};
+                    const students = data.report.students || [];
+                    
+                    currentReportHTML = createTeacherReportHTML(teacherData, students);
+                    document.getElementById('previewContent').innerHTML = currentReportHTML;
+                    document.getElementById('previewModal').style.display = 'flex';
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to generate report'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating teacher report: ' + error.message);
+            }
         }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error generating teacher report: ' + error.message);
-    }
-}
         
         async function previewSystemReport() {
             currentReportHTML = await createSystemReportHTML();
@@ -2473,44 +2478,49 @@
             }
         }
         
-     async function generateTeacherReport() {
-    const teacherId = document.getElementById('reportTeacherId').value;
-    if (!teacherId) { 
-        alert('Please select a teacher'); 
-        return; 
-    }
-    
-    document.getElementById('reportMessage').innerHTML = 'Generating PDF...';
-    document.getElementById('reportMessage').className = 'message';
-    
-    try {
-        // Same GET route use karo jo previewTeacherReport use kar raha hai
-        const response = await fetch(`${API_URL}/admin/teacher-report/${teacherId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const data = await response.json();
-        console.log('Teacher report data for PDF:', data);
-        
-        if (data.success && data.report) {
-            const teacherData = data.report.teacher || {};
-            const students = data.report.students || [];
+    async function generateTeacherReport() {
+            const teacherId = document.getElementById('reportTeacherId').value;
+            if (!teacherId) { 
+                alert('Please select a teacher'); 
+                return; 
+            }
             
-            const reportHTML = createTeacherReportHTML(teacherData, students);
-            await downloadPDFDirect(reportHTML, `teacher_report_${teacherData.name || 'teacher'}.pdf`);
-            document.getElementById('reportMessage').innerHTML = 'PDF downloaded successfully!';
-            document.getElementById('reportMessage').className = 'message success';
-            setTimeout(() => { document.getElementById('reportMessage').style.display = 'none'; }, 3000);
-        } else {
-            document.getElementById('reportMessage').innerHTML = 'Error: ' + (data.message || 'Failed to generate report');
-            document.getElementById('reportMessage').className = 'message error';
+            document.getElementById('reportMessage').innerHTML = 'Generating PDF...';
+            document.getElementById('reportMessage').className = 'message';
+            
+            try {
+                // FIX: Changed to use the correct POST route here as well
+                const response = await fetch(`${API_URL}/admin/generate-report`, {
+                    method: 'POST', 
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ reportType: 'teacher', teacherId: teacherId })
+                });
+                
+                const data = await response.json();
+                console.log('Teacher report data for PDF:', data);
+                
+                if (data.success && data.report) {
+                    const teacherData = data.report.teacher || {};
+                    const students = data.report.students || [];
+                    
+                    const reportHTML = createTeacherReportHTML(teacherData, students);
+                    await downloadPDFDirect(reportHTML, `teacher_report_${teacherData.name || 'teacher'}.pdf`);
+                    document.getElementById('reportMessage').innerHTML = 'PDF downloaded successfully!';
+                    document.getElementById('reportMessage').className = 'message success';
+                    setTimeout(() => { document.getElementById('reportMessage').style.display = 'none'; }, 3000);
+                } else {
+                    document.getElementById('reportMessage').innerHTML = 'Error: ' + (data.message || 'Failed to generate report');
+                    document.getElementById('reportMessage').className = 'message error';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('reportMessage').innerHTML = 'Error generating PDF: ' + error.message;
+                document.getElementById('reportMessage').className = 'message error';
+            }
         }
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('reportMessage').innerHTML = 'Error generating PDF: ' + error.message;
-        document.getElementById('reportMessage').className = 'message error';
-    }
-}
         
         async function generateSystemReport() {
             const reportHTML = await createSystemReportHTML();
